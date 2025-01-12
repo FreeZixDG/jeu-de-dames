@@ -2,6 +2,7 @@ import numpy as np
 import pygame
 
 from case import Case
+from piece import Piece
 from team import Team
 
 
@@ -13,14 +14,14 @@ class Board:
         for y in range(size[0]):
             for x in range(size[1]):
                 if y >= 6:
-                    self.__board[x, y] = Case((x, y), team=Team.WHITE)
+                    self.__board[x, y] = Case((x, y), content=Piece(Team.WHITE))
                     continue
                 elif y <= 3:
-                    self.__board[x, y] = Case((x, y), team=Team.BLACK)
+                    self.__board[x, y] = Case((x, y), content=Piece(Team.BLACK))
                     continue
 
-                if y == 4:  # Test a supprimer
-                    self.__board[x, y] = Case((x, y), team=Team.BLACK, is_queen=True)
+                if x == 4 and y == 4:
+                    self.__board[x, y] = Case((x, y), content=Piece(Team.BLACK, is_queen=True))
                     continue
 
                 self.__board[x, y] = Case((x, y))
@@ -31,4 +32,7 @@ class Board:
                 case.draw(screen, size, offset)
 
     def getCase(self, coordinates: tuple[int, int]) -> Case:
-        return self.__board[coordinates[0], coordinates[1]]
+        x, y = coordinates
+        if not (0 <= x < self.__size[0] and 0 <= y < self.__size[1]):
+            return None
+        return self.__board[x, y]
