@@ -1,18 +1,18 @@
 import pygame as pg
 
+from board import Board
 from team import Team
 
 
 class Piece:
-    def __init__(self, team: Team, is_queen: bool = False):
+    def __init__(self, team: Team):
         self.__team = team
-        self.__is_queen = is_queen
 
     def get_team(self):
         return self.__team
 
-    def is_queen(self):
-        return self.__is_queen
+    def __can_move(self, board: Board, start_pos, end_pos):
+        pass
 
     def draw(self, surface: pg.Surface, location: tuple[int, int], size: int, offset: int = 0) -> None:
 
@@ -27,16 +27,21 @@ class Piece:
                 return
 
         pg.draw.circle(surface, color_out,
-                       (location[0] * (size + offset) + size / 2, location[1] * (size + offset) + size / 2),
-                       size / 2)
+                       (location[0] * (size + offset) + size / 2, location[1] * (size + offset) + size / 2), size / 2)
         pg.draw.circle(surface, color_in,
-                       (location[0] * (size + offset) + size / 2, location[1] * (size + offset) + size / 2),
-                       size / 2.2)
+                       (location[0] * (size + offset) + size / 2, location[1] * (size + offset) + size / 2), size / 2.2)
 
-        if self.__is_queen:
-            self.__draw_queen(surface, location, size, offset)
+    def __repr__(self):
+        if self.__team is not None:
+            return f"{self.__team.value}"
 
-    def __draw_queen(self, surface: pg.Surface, location: tuple[int, int], size: int, offset: int = 0) -> None:
+
+class Queen(Piece):
+    def __init__(self, team: Team):
+        super().__init__(team)
+
+    def draw(self, surface: pg.Surface, location: tuple[int, int], size: int, offset: int = 0) -> None:
+        super().draw(surface, location, size)
         match self.__team:
             case Team.WHITE:
                 c = "#333333"
@@ -49,9 +54,5 @@ class Piece:
                        size / 6)
 
     def __repr__(self):
-        result = "("
         if self.__team is not None:
-            result += f"{self.__team.value}"
-        if self.__is_queen:
-            result += " Queen"
-        return result + ")"
+            return f"{self.__team.value} Queen"

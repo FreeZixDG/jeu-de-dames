@@ -12,6 +12,12 @@ class Case:
 
         self.__content = content
 
+    def get_content(self) -> Piece:
+        return self.__content
+
+    def set_content(self, content: Piece):
+        self.__content = content
+
     def draw(self, surface: pg.Surface, size: int, offset: int = 0) -> None:
         self.__draw_square(surface, size, offset)
 
@@ -20,7 +26,6 @@ class Case:
 
     def __draw_square(self, surface: pg.Surface, size: int, offset: int = 0) -> None:
         pg.draw.rect(surface, self.__color, pg.Rect(self.__x * (size + offset), self.__y * (size + offset), size, size))
-
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.__x}, {self.__y}) {self.__content}"

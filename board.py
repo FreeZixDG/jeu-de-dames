@@ -2,7 +2,7 @@ import numpy as np
 import pygame
 
 from case import Case
-from piece import Piece
+from piece import Piece, Queen
 from team import Team
 
 
@@ -19,6 +19,9 @@ class Board:
                 elif y <= 3 and (x + y) % 2 == 1:
                     self.__board[x, y] = Case((x, y), content=Piece(Team.BLACK))
                     continue
+
+                if x == 4 and y == 4:
+                    self.__board[x, y] = Case((x, y), content=Queen(Team.WHITE))
 
                 self.__board[x, y] = Case((x, y))
 
