@@ -20,10 +20,6 @@ class Board:
                     self.__board[x, y] = Case((x, y), content=Piece(Team.BLACK))
                     continue
 
-                if x == 4 and y == 4:
-                    self.__board[x, y] = Case((x, y), content=Piece(Team.BLACK, is_queen=True))
-                    continue
-
                 self.__board[x, y] = Case((x, y))
 
     def draw(self, screen: pygame.Surface, size: int, offset: int = 0):
