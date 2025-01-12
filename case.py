@@ -14,23 +14,40 @@ class Case:
 
     def draw(self, surface: pg.Surface, size: int, offset: int = 0) -> None:
         self.__draw_square(surface, size, offset)
-        self.__draw_piece(surface, size, offset)
+
+        if self.__team is not None:
+            self.__draw_piece(surface, size, offset)
+
+        if self.__is_queen:
+            self.__draw_queen(surface, size, offset)
 
     def __draw_piece(self, surface: pg.Surface, size: int, offset: int = 0) -> None:
 
         match self.__team:
             case Team.WHITE:
-                c = "#EEEEEE"
+                c = "#DDDDDD"
             case Team.BLACK:
-                c = "#111111"
+                c = "#333333"
             case _:
                 return
 
         pg.draw.circle(surface, c, (self.__x * (size + offset) + size / 2, self.__y * (size + offset) + size / 2),
-                       size / 2)
+                       size / 2.2)
 
     def __draw_square(self, surface: pg.Surface, size: int, offset: int = 0) -> None:
         pg.draw.rect(surface, self.__color, pg.Rect(self.__x * (size + offset), self.__y * (size + offset), size, size))
+
+    def __draw_queen(self, surface: pg.Surface, size: int, offset: int = 0) -> None:
+        match self.__team:
+            case Team.WHITE:
+                c = "#333333"
+            case Team.BLACK:
+                c = "#DDDDDD"
+            case _:
+                return
+
+        pg.draw.circle(surface, c, (self.__x * (size + offset) + size / 2, self.__y * (size + offset) + size / 2),
+                       size / 6)
 
     def __repr__(self) -> str:
         result = f"{self.__class__.__name__}({self.__x}, {self.__y})"

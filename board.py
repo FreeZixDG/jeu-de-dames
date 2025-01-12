@@ -18,6 +18,11 @@ class Board:
                 elif y <= 3:
                     self.__board[x, y] = Case((x, y), team=Team.BLACK)
                     continue
+
+                if y == 4:  # Test a supprimer
+                    self.__board[x, y] = Case((x, y), team=Team.BLACK, is_queen=True)
+                    continue
+
                 self.__board[x, y] = Case((x, y))
 
     def draw(self, screen: pygame.Surface, size: int, offset: int = 0):
