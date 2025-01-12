@@ -8,5 +8,5 @@ class Case:
 
         self.color = "#713a36" if self.x + self.y % 2 == 0 else "#ffcb98"
 
-    def draw(self, surface: pg.Surface, size: int) -> None:
-        pg.draw.rect(surface, "#713a36", pg.Rect(self.x * (size + OFFSET), self.y * (size + OFFSET), size, size))
+    def draw(self, surface: pg.Surface, size: int, offset: int = 0) -> None:
+        pg.draw.rect(surface, "#713a36", pg.Rect(self.x * (size + offset), self.y * (size + offset), size, size))
