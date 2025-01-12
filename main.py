@@ -6,11 +6,11 @@ from board import Board
 
 # pygame setup
 pg.init()
-screen = pg.display.set_mode((1280, 720))
+screen = pg.display.set_mode((820, 820))
 clock = pg.time.Clock()
 running = True
 GRID = np.zeros((10, 10))
-SIZE = 50
+SIZE = 80
 OFFSET = 2
 BOARD = Board((10, 10))
 

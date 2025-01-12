@@ -18,13 +18,19 @@ class Piece:
 
         match self.__team:
             case Team.WHITE:
-                c = "#DDDDDD"
+                color_in = "#DDDDDD"
+                color_out = "#333333"
             case Team.BLACK:
-                c = "#333333"
+                color_in = "#333333"
+                color_out = "#DDDDDD"
             case _:
                 return
 
-        pg.draw.circle(surface, c, (location[0] * (size + offset) + size / 2, location[1] * (size + offset) + size / 2),
+        pg.draw.circle(surface, color_out,
+                       (location[0] * (size + offset) + size / 2, location[1] * (size + offset) + size / 2),
+                       size / 2)
+        pg.draw.circle(surface, color_in,
+                       (location[0] * (size + offset) + size / 2, location[1] * (size + offset) + size / 2),
                        size / 2.2)
 
         if self.__is_queen:

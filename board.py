@@ -13,10 +13,10 @@ class Board:
 
         for y in range(size[0]):
             for x in range(size[1]):
-                if y >= 6:
+                if y >= 6 and (x + y) % 2 == 1:
                     self.__board[x, y] = Case((x, y), content=Piece(Team.WHITE))
                     continue
-                elif y <= 3:
+                elif y <= 3 and (x + y) % 2 == 1:
                     self.__board[x, y] = Case((x, y), content=Piece(Team.BLACK))
                     continue
 
