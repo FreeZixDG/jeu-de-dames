@@ -1,6 +1,5 @@
 import pygame as pg
 
-from board import Board
 from team import Team
 
 
@@ -10,9 +9,6 @@ class Piece:
 
     def get_team(self):
         return self.__team
-
-    def __can_move(self, board: Board, start_pos, end_pos):
-        pass
 
     def draw(self, surface: pg.Surface, location: tuple[int, int], size: int, offset: int = 0) -> None:
 

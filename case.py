@@ -1,6 +1,6 @@
 import pygame as pg
 
-from piece import Piece
+from piece import Piece  # Import uniquement pour les vérifications de type
 
 
 class Case:
