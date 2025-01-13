@@ -4,9 +4,8 @@ import numpy as np
 import pygame
 
 from case import Case, PlayableCase
-from piece import Piece, Queen
 from team import Team
-
+from piece import Piece
 
 class Board:
     def __init__(self, size: tuple[int, int], init: str = None):
@@ -36,3 +35,10 @@ class Board:
         if not (0 <= x < self.__size[0] and 0 <= y < self.__size[1]):
             return None
         return self.__board[x, y]
+
+    def is_valid_move(self, coordinates: tuple[int, int]) -> bool:
+        """Vérifie si des coordonnées sont valides pour le plateau."""
+        x, y = coordinates
+        return 0 <= x < self.__size[0] \
+            and 0 <= y < self.__size[1] \
+            and not isinstance(self.get_case(coordinates).get_content(), Piece)

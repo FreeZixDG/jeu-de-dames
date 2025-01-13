@@ -1,6 +1,11 @@
+from __future__ import annotations
+
 import pygame as pg
 
-from piece import Piece  # Import uniquement pour les vérifications de type
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from piece import Piece
 
 
 class Case:
