@@ -37,8 +37,8 @@ class Queen(Piece):
         super().__init__(team)
 
     def draw(self, surface: pg.Surface, location: tuple[int, int], size: int, offset: int = 0) -> None:
-        super().draw(surface, location, size)
-        match self.__team:
+        super().draw(surface, location, size, offset)
+        match self.get_team():
             case Team.WHITE:
                 c = "#333333"
             case Team.BLACK:
@@ -50,5 +50,5 @@ class Queen(Piece):
                        size / 6)
 
     def __repr__(self):
-        if self.__team is not None:
-            return f"{self.__team.value} Queen"
+        if self.get_team() is not None:
+            return f"{self.get_team().value} Queen"

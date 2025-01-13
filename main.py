@@ -3,7 +3,8 @@ import numpy as np
 import pygame as pg
 
 from board import Board
-
+from player import Player
+from team import Team
 # pygame setup
 pg.init()
 screen = pg.display.set_mode((820, 820))
@@ -13,6 +14,7 @@ GRID = np.zeros((10, 10))
 SIZE = 80
 OFFSET = 2
 BOARD = Board((10, 10))
+p = Player(0, "jerem", Team.WHITE)
 
 while running:
     mouse_x, mouse_y = pg.mouse.get_pos()
@@ -24,7 +26,10 @@ while running:
         elif event.type == pg.MOUSEBUTTONDOWN:
             X = mouse_x // (SIZE + OFFSET)
             Y = mouse_y // (SIZE + OFFSET)
-            print(BOARD.getCase((X, Y)))
+            c = BOARD.get_case((X, Y))
+            p.select_case(c)
+            print(c)
+
 
     # fill the screen with a color to wipe away anything from last frame
     screen.fill("grey")
