@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pygame as pg
-
+from colors_constants import *
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 class Case:
     def __init__(self, coordinates: tuple[int, int]):
         self.__x, self.__y = coordinates
-        self._color = "#713a36"
+        self._color = DEFAULT_UNPLAYABLE_COLOR
 
     def get_coordinates(self) -> tuple[int, int]:
         return self.__x, self.__y
@@ -31,7 +31,7 @@ class PlayableCase(Case):
         super().__init__(coordinates)
         self.__is_selected = False
         self.__is_landable = False
-        self._color = "#ffcb98"
+        self._color = DEFAULT_PLAYABLE_COLOR
         self.__content = content
 
     def get_content(self) -> Piece:
@@ -42,7 +42,7 @@ class PlayableCase(Case):
 
     def set_selected(self, param: bool):
         self.__is_selected = param
-        self._color = "#00AA00" if param else "#ffcb98"
+        self._color = SELECTED_COLOR if param else DEFAULT_PLAYABLE_COLOR
 
     def set_landable(self, param: bool):
         self.__is_landable = param

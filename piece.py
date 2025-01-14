@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import pygame as pg
 from team import Team
-
+from colors_constants import *
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from board import Board
+    from game import Board
 
 
 class Piece:
@@ -15,11 +15,11 @@ class Piece:
 
         match self.__team:
             case Team.WHITE:
-                self._color_in = "#DDDDDD"
-                self._color_out = "#333333"
+                self._color_in = WHITE_COLOR
+                self._color_out = BLACK_COLOR
             case Team.BLACK:
-                self._color_in = "#333333"
-                self._color_out = "#DDDDDD"
+                self._color_in = BLACK_COLOR
+                self._color_out = WHITE_COLOR
             case _:
                 return
 

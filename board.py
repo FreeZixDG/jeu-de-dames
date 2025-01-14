@@ -2,7 +2,7 @@ from typing import Any
 
 import numpy as np
 import pygame as pg
-
+from colors_constants import *
 from case import Case, PlayableCase
 from team import Team
 from piece import Piece, Queen
@@ -48,18 +48,14 @@ class Board:
         if case is None:
             return
 
-        landables = self.__get_landable_cases()
+        landables = list(self.__get_landable_cases())
         for i in range(len(landables)):
             start_pos = add(mult(case.get_coordinates(), (size + offset)), int(size // 2))
             end_pos = add(mult(landables[i].get_coordinates(), (size + offset)), int(size // 2))
-            pg.draw.line(screen, "#000000", start_pos, end_pos, 3)
+            pg.draw.line(screen, ARROWS_COLOR, start_pos, end_pos, 3)
 
     def __get_selected_case(self):
-        for case in self.__board.flatten():
-            if isinstance(case, PlayableCase):
-                if case.is_selected():
-                    return case
-        return None
+        return next(self.get_cases(lambda c: isinstance(c, PlayableCase) and c.is_selected()), None)
 
     def get_case(self, coordinates: tuple[int, int]) -> np.ndarray[tuple[int, int], np.dtype[Case]] | None:
         x, y = coordinates
@@ -75,10 +71,8 @@ class Board:
             and not isinstance(self.get_case(coordinates).get_content(), Piece)
 
     def __get_landable_cases(self):
-        result = []
-        for case in self.__board.flatten():
-            if isinstance(case, PlayableCase):
-                if case.is_landable():
-                    result += [case]
+        return self.get_cases(
+            lambda c: isinstance(c, PlayableCase) and c.is_landable())
 
-        return result
+    def get_cases(self, condition):
+        return (case for case in self.__board.flatten() if condition(case))
