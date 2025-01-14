@@ -32,7 +32,8 @@ class Piece:
 
         # Exemples pour un mouvement de type pièce standard (jeux de dames) :
         if self._team == Team.WHITE:
-            potential_moves.extend([(x - 1, y - 1), (x + 1, y - 1)])  # Diagonales haut pour blanc
+            diag_whites = [(x - 1, y - 1), (x + 1, y - 1)]
+            potential_moves.extend(diag_whites)  # Diagonales haut pour blanc
         elif self._team == Team.BLACK:
             potential_moves.extend([(x - 1, y + 1), (x + 1, y + 1)])  # Diagonales bas pour noir
 
