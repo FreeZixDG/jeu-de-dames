@@ -30,18 +30,22 @@ class PlayableCase(Case):
     def __init__(self, coordinates: tuple[int, int], content: Piece = None):
         super().__init__(coordinates)
         self.__is_selected = False
+        self.__is_landable = False
         self._color = "#ffcb98"
         self.__content = content
 
     def get_content(self) -> Piece:
         return self.__content
 
-    def set_content(self, content: Piece):
+    def set_content(self, content: Piece | None):
         self.__content = content
 
     def set_selected(self, param: bool):
         self.__is_selected = param
         self._color = "#00AA00" if param else "#ffcb98"
+
+    def set_landable(self, param: bool):
+        self.__is_landable = param
 
     def draw(self, surface: pg.Surface, size: int, offset: int = 0) -> None:
         super().draw(surface, size, offset)
@@ -50,3 +54,9 @@ class PlayableCase(Case):
 
     def __repr__(self) -> str:
         return f"{super().__repr__()} {self.__content}"
+
+    def is_selected(self):
+        return self.__is_selected
+
+    def is_landable(self):
+        return self.__is_landable

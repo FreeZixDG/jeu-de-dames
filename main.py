@@ -27,9 +27,8 @@ while running:
         elif event.type == pg.MOUSEBUTTONDOWN:
             X = mouse_x // (SIZE + OFFSET)
             Y = mouse_y // (SIZE + OFFSET)
-            c = BOARD.get_case((X, Y))
-            p.select_case(c, BOARD)
-            print(c)
+            p.on_click((X, Y), BOARD)
+            print(f"Clicked on ({BOARD.get_case((X, Y))})")
 
     # fill the screen with a color to wipe away anything from last frame
     screen.fill("grey")
@@ -40,6 +39,6 @@ while running:
     # flip() the display to put your work on screen
     pg.display.flip()
 
-    clock.tick(60)  # limits FPS to 60
+    clock.tick(10)  # limits FPS to 60
 
 pg.quit()
