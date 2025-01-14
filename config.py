@@ -1,0 +1,5 @@
+# config.py
+SCREEN_SIZE = (820, 820)
+GRID_SIZE = (10, 10)
+CELL_SIZE = 80
+OFFSET = 2

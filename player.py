@@ -50,10 +50,6 @@ class Player:
             self.__deselect_case()
             self.clear_possible_moves()
 
-
-
-
-
     def highlight_moves(self, board: Board, valid_moves: list[tuple[int, int]]):
         """Met en évidence les cases accessibles."""
         for move in valid_moves:
@@ -65,7 +61,6 @@ class Player:
     def __deselect_case(self):
         if self.__selected_case is not None:
             self.__selected_case.set_selected(False)
-
 
     def add_possible_move(self, case: Case):
         self.__possible_moves += [case]
@@ -85,5 +80,3 @@ class Player:
 
         case.set_content(piece)
         self.__selected_case.set_content(None)
-
-

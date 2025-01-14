@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from board import Board
 
+
 class Piece:
     def __init__(self, team: Team):
         self.__team = team
