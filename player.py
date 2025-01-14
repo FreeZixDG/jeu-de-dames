@@ -17,11 +17,18 @@ class Player:
         self.__id = player_id
         self.__name = name
         self.__team = team
+        self.__his_turn = True if self.__team == Team.WHITE else False
 
         self.__selected_case: OptionalPlayableCase = None
         self.__possible_moves: list[PlayableCase] = []
 
-    def get_player_id(self):
+    def get_his_turn(self) -> bool:
+        return self.__his_turn
+
+    def set_his_turn(self, value: bool):
+        self.__his_turn = value
+
+    def get_player_id(self) -> int:
         return self.__id
 
     def get_name(self):
@@ -43,6 +50,7 @@ class Player:
 
 
         elif isinstance(case, PlayableCase) and case.is_landable():
+            print(self.__get_cases_between_start_and_end(board, case))
             self.__move_piece(case)
             self.__deselect_case()
             self.clear_possible_moves()
@@ -80,3 +88,23 @@ class Player:
 
         case.set_content(piece)
         self.__selected_case.set_content(None)
+        self.set_his_turn(False)
+
+    def __get_cases_between_start_and_end(self, board: Board, case: PlayableCase) -> list[PlayableCase]:
+        start_x, start_y = self.__selected_case.get_coordinates()
+        end_x, end_y = case.get_coordinates()
+        step_x = 1 if end_x > start_x else -1
+        step_y = 1 if end_y > start_y else -1
+
+        current_x, current_y = start_x + step_x, start_y + step_y
+        result = []
+
+        while (current_x, current_y) != (end_x, end_y):
+            result.append(board.get_case((current_x, current_y)))
+            current_x += step_x
+            current_y += step_y
+
+
+        return result
+        
+

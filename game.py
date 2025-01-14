@@ -11,7 +11,8 @@ class Game:
         self.clock = pg.time.Clock()
         self.running = True
         self.board = Board(GRID_SIZE)
-        self.player = Player(0, "jerem", Team.WHITE)
+        self.player1 = Player(0, "jerem", Team.WHITE)
+        self.player2 = Player(1, "Player2", Team.BLACK)
         self.size = CELL_SIZE
         self.offset = OFFSET
 
@@ -23,7 +24,15 @@ class Game:
             elif event.type == pg.MOUSEBUTTONDOWN:
                 x = mouse_x // (self.size + self.offset)
                 y = mouse_y // (self.size + self.offset)
-                self.player.on_click((x, y), self.board)
+                if self.player1.get_his_turn():
+                    self.player1.on_click((x, y), self.board)
+                    if not self.player1.get_his_turn():
+                        self.player2.set_his_turn(True)
+                else:
+                    self.player2.on_click((x, y), self.board)
+                    if not self.player2.get_his_turn():
+                        self.player1.set_his_turn(True)
+
                 print(f"Clicked on ({self.board.get_case((x, y))})")
 
 

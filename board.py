@@ -76,3 +76,4 @@ class Board:
 
     def get_cases(self, condition):
         return (case for case in self.__board.flatten() if condition(case))
+
