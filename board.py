@@ -20,6 +20,7 @@ def add(t: tuple[int | float, ...], c: int | float):
 def moddiv(a, b):
     return a % b, a // b
 
+
 class Board:
     def __init__(self, size: int, init: str = "20b10.20w"):
         self.__size = size
