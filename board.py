@@ -67,8 +67,7 @@ class Board:
         """Vérifie si des coordonnées sont valides pour le plateau."""
         x, y = coordinates
         return 0 <= x < self.__size[0] \
-            and 0 <= y < self.__size[1] \
-            and not isinstance(self.get_case(coordinates).get_content(), Piece)
+            and 0 <= y < self.__size[1]
 
     def __get_landable_cases(self):
         return self.get_cases(
@@ -76,4 +75,7 @@ class Board:
 
     def get_cases(self, condition):
         return (case for case in self.__board.flatten() if condition(case))
+
+    def is_case(self, coordinates: tuple[int, int], condition) -> bool:
+        return condition(self.get_case(coordinates))
 

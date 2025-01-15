@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import pygame as pg
+
+from case import PlayableCase
 from team import Team
 from colors_constants import *
 from typing import TYPE_CHECKING
@@ -67,18 +69,37 @@ class Queen(Piece):
 
     def get_valid_moves(self, board: Board, current_position: tuple[int, int]) -> list[tuple[int, int]]:
         x, y = current_position
-        potential_moves = []
+        result = []
+        result += self.__get_valid_moves_for_diagonal(board, current_position, (1, 1))
+        result += self.__get_valid_moves_for_diagonal(board, current_position, (-1, -1))
+        result += self.__get_valid_moves_for_diagonal(board, current_position, (-1, 1))
+        result += self.__get_valid_moves_for_diagonal(board, current_position, (1, -1))
 
+        return result
+
+    def __get_valid_moves_for_diagonal(self, board: Board, current_position: tuple[int, int],
+                                       diagonal: tuple[int, int]) -> list[tuple[int, int]]:
+        dir_x, dir_y = diagonal
+        x, y = current_position
+        result = []
+        has_met_opponent = False
         for i in range(1, 8):
-            potential_moves.extend([(x - i, y - i), (x + i, y - i)])  # Diagonales haut pour blanc
-            potential_moves.extend([(x - i, y + i), (x + i, y + i)])  # Diagonales bas pour noir
+            x, y = x + 1 * dir_x, y + 1 * dir_y
+            case = board.get_case((x, y))
+            if not board.is_valid_move((x, y)):
+                break
+            if isinstance(case, PlayableCase):
+                if case.get_content() is None:
+                    result.append((x, y))
+                elif case.get_content().get_team() == self._team:
+                    break
+                else:
+                    if has_met_opponent:
+                        break
+                    has_met_opponent = True
+                    continue
 
-        # Filtrer pour enlever les mouvements hors du plateau ou avec une case non vide.
-        valid_moves = [
-            pos for pos in potential_moves
-            if board.is_valid_move(pos)
-        ]
-        return valid_moves
+        return result
 
     def __repr__(self):
         if self._team is not None:
