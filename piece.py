@@ -128,7 +128,7 @@ class Queen(Piece):
         x, y = current_position
         result = []
         has_met_opponent = False
-        for i in range(1, GRID_SIZE[0]):
+        for i in range(1, GRID_SIZE):
             x, y = x + 1 * dir_x, y + 1 * dir_y
             case = board.get_case((x, y))
             if not board.is_valid_move((x, y)):
@@ -151,7 +151,7 @@ class Queen(Piece):
         dir_x, dir_y = diagonal
         x, y = current_position
         result = []
-        for i in range(1, GRID_SIZE[0]):
+        for i in range(1, GRID_SIZE):
             x, y = x + 1 * dir_x, y + 1 * dir_y
             case = board.get_case((x, y))
             if not board.is_valid_move((x, y)):

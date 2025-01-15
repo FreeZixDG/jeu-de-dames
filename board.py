@@ -1,11 +1,10 @@
-from typing import Any
-
 import numpy as np
 import pygame as pg
-from colors_constants import *
+
 from case import Case, PlayableCase
-from team import Team
+from colors_constants import *
 from piece import Piece, Queen
+from team import Team
 
 
 def mult(t: tuple[int | float, ...], c: int | float):
@@ -17,12 +16,16 @@ def add(t: tuple[int | float, ...], c: int | float):
 
 
 class Board:
-    def __init__(self, size: tuple[int, int], init: str = None):
+    def __init__(self, size: int, init: str = None):
         self.__size = size
-        self.__board = np.zeros(size, dtype=Case)
+        if init is None:
+            self.init = "20b10.20w"
+        else:
+            self.init = init
+        self.__board = np.zeros((size, size), dtype=Case)
 
-        for y in range(size[0]):
-            for x in range(size[1]):
+        for y in range(size):
+            for x in range(size):
                 if (x + y) % 2 == 0:
                     self.__board[x, y] = Case((x, y))
                     continue
@@ -59,15 +62,15 @@ class Board:
 
     def get_case(self, coordinates: tuple[int, int]) -> np.ndarray[tuple[int, int], np.dtype[Case]] | None:
         x, y = coordinates
-        if not (0 <= x < self.__size[0] and 0 <= y < self.__size[1]):
+        if not (0 <= x < self.__size and 0 <= y < self.__size):
             return None
         return self.__board[x, y]
 
     def is_valid_move(self, coordinates: tuple[int, int]) -> bool:
         """Vérifie si des coordonnées sont valides pour le plateau."""
         x, y = coordinates
-        return 0 <= x < self.__size[0] \
-            and 0 <= y < self.__size[1]
+        return 0 <= x < self.__size \
+            and 0 <= y < self.__size
 
     def __get_landable_cases(self):
         return self.get_cases(
