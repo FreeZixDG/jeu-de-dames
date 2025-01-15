@@ -12,8 +12,7 @@ if TYPE_CHECKING:
 
 class Case:
     def __init__(self, coordinates: tuple[int, int]):
-        if isinstance(coordinates, tuple):
-            self._x, self._y = coordinates
+        self._x, self._y = coordinates
         self._color = DEFAULT_UNPLAYABLE_COLOR
 
     def get_coordinates(self) -> tuple[int, int]:
