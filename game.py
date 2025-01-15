@@ -28,7 +28,7 @@ class Game:
                 y = mouse_y // (self.size + self.offset)
                 if self.player1.get_his_turn():
                     self.player1.on_click((x, y), self.board)
-                    print(f"({self.player1}) Clicked on ({self.board.get_case((x, y))})")
+                    print(f"({self.player1}) Clicked on {self.board.get_case((x, y))}")
                     if not self.player1.get_his_turn():
                         self.player2.set_his_turn(True)
                 else:

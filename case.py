@@ -25,7 +25,7 @@ class Case:
         pg.draw.rect(surface, self._color, pg.Rect(self._x * (size + offset), self._y * (size + offset), size, size))
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self._x}, {self._y})"
+        return f"({self.__class__.__name__}({self._x}, {self._y}))"
 
 
 class PlayableCase(Case):
