@@ -78,4 +78,3 @@ class Board:
 
     def is_case(self, coordinates: tuple[int, int], condition) -> bool:
         return condition(self.get_case(coordinates))
-

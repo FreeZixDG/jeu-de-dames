@@ -4,6 +4,7 @@ from player import Player
 from team import Team
 from config import SCREEN_SIZE, GRID_SIZE, CELL_SIZE, OFFSET
 
+
 class Game:
     def __init__(self):
         pg.init()
@@ -34,8 +35,6 @@ class Game:
                     print(f"({self.player2}) Clicked on ({self.board.get_case((x, y))})")
                     if not self.player2.get_his_turn():
                         self.player1.set_his_turn(True)
-
-
 
     def render(self):
         self.screen.fill("grey")
