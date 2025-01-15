@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-import pygame as pg
-from colors_constants import *
 from typing import TYPE_CHECKING
+
+import pygame as pg
+
+from colors_constants import *
 
 if TYPE_CHECKING:
     from piece import Piece
@@ -10,20 +12,20 @@ if TYPE_CHECKING:
 
 class Case:
     def __init__(self, coordinates: tuple[int, int]):
-        self.__x, self.__y = coordinates
+        self._x, self._y = coordinates
         self._color = DEFAULT_UNPLAYABLE_COLOR
 
     def get_coordinates(self) -> tuple[int, int]:
-        return self.__x, self.__y
+        return self._x, self._y
 
     def draw(self, surface: pg.Surface, size: int, offset: int = 0) -> None:
         self.__draw_square(surface, size, offset)
 
     def __draw_square(self, surface: pg.Surface, size: int, offset: int = 0) -> None:
-        pg.draw.rect(surface, self._color, pg.Rect(self.__x * (size + offset), self.__y * (size + offset), size, size))
+        pg.draw.rect(surface, self._color, pg.Rect(self._x * (size + offset), self._y * (size + offset), size, size))
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.__x}, {self.__y})"
+        return f"{self.__class__.__name__}({self._x}, {self._y})"
 
 
 class PlayableCase(Case):
@@ -51,6 +53,9 @@ class PlayableCase(Case):
         super().draw(surface, size, offset)
         if self.__content is not None:
             self.__content.draw(surface, self.get_coordinates(), size, offset)
+        elif self.__is_landable:
+            pg.draw.circle(surface, ARROWS_COLOR,
+                           (self._x * (size + offset) + size / 2, self._y * (size + offset) + size / 2), size / 6)
 
     def __repr__(self) -> str:
         return f"{super().__repr__()} {self.__content}"
