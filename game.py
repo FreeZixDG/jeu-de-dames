@@ -1,8 +1,9 @@
 import pygame as pg
+
 from board import Board
+from config import SCREEN_SIZE, GRID_SIZE, CELL_SIZE, OFFSET
 from player import Player
 from team import Team
-from config import SCREEN_SIZE, GRID_SIZE, CELL_SIZE, OFFSET
 
 
 class Game:
@@ -37,7 +38,7 @@ class Game:
                         self.player1.set_his_turn(True)
 
     def render(self):
-        self.screen.fill("grey")
+        self.screen.fill("black")
         self.board.draw(self.screen, self.size, self.offset)
         pg.display.flip()
 
