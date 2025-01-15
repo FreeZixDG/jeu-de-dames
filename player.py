@@ -17,6 +17,7 @@ class Player:
         self.__id = player_id
         self.__name = name
         self.__team = team
+        self.__eaten_pieces = []
         self.__his_turn = True if self.__team == Team.WHITE else False
 
         self.__selected_case: OptionalPlayableCase = None
@@ -50,8 +51,12 @@ class Player:
 
 
         elif isinstance(case, PlayableCase) and case.is_landable():
-            print(self.__get_cases_between_start_and_end(board, case))
             self.__move_piece(case)
+            for case in self.__get_cases_between_start_and_end(board, case):
+                piece = case.get_content()
+                if not (piece is None or piece.get_team() == self.__team):
+                    case.set_content(None)
+                    self.__eaten_pieces += [piece]
             self.__deselect_case()
             self.clear_possible_moves()
         else:
@@ -104,7 +109,7 @@ class Player:
             current_x += step_x
             current_y += step_y
 
-
         return result
-        
 
+    def __repr__(self):
+        return f"{self.__name} ({self.__team.value}) {self.__eaten_pieces}"
