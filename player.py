@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from case import Case, PlayableCase
-
-from team import Team
-
 from typing import TYPE_CHECKING, Optional
+
+from case import Case, PlayableCase
+from team import Team
 
 if TYPE_CHECKING:
     from board import Board
@@ -92,6 +91,7 @@ class Player:
         piece = self.__selected_case.get_content()
 
         case.set_content(piece)
+        case.promote()
         self.__selected_case.set_content(None)
         self.set_his_turn(False)
 

@@ -5,10 +5,11 @@ from typing import TYPE_CHECKING
 import pygame as pg
 
 from colors_constants import *
+from config import GRID_SIZE
+from team import Team
 
 if TYPE_CHECKING:
     from piece import Piece
-
 
 class Case:
     def __init__(self, coordinates: tuple[int, int]):
@@ -65,3 +66,10 @@ class PlayableCase(Case):
 
     def is_landable(self):
         return self.__is_landable
+
+    def promote(self):
+        from piece import Queen
+        if self._y == 0 and self.__content.get_team() is Team.WHITE:
+            self.__content = Queen(self.__content.get_team())
+        elif self._y == GRID_SIZE - 1 and self.__content.get_team() is Team.BLACK:
+            self.__content = Queen(self.__content.get_team())

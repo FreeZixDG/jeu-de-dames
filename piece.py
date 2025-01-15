@@ -10,7 +10,7 @@ from config import GRID_SIZE
 from team import Team
 
 if TYPE_CHECKING:
-    from game import Board
+    from board import Board
 
 
 class Piece:
@@ -31,12 +31,8 @@ class Piece:
         return self._team
 
     def get_valid_moves(self, board: Board, current_position: tuple[int, int]) -> list[tuple[int, int]]:
-        x, y = current_position
         result = []
-        result += self.__check_can_eat(board, current_position, (1, 1))
-        result += self.__check_can_eat(board, current_position, (-1, 1))
-        result += self.__check_can_eat(board, current_position, (1, -1))
-        result += self.__check_can_eat(board, current_position, (-1, -1))
+        result += self.__get_can_eat(board, current_position, (1, 1))
         if result:
             return result
 
@@ -47,6 +43,15 @@ class Piece:
             result += self.__get_valid_moves_for_diagonal(board, current_position, (1, 1))
             result += self.__get_valid_moves_for_diagonal(board, current_position, (-1, 1))
 
+        return result
+
+    def __get_can_eat(self, board: Board, current_position: tuple[int, int], diagonal: tuple[int, int]) -> list[
+        tuple[int, int]]:
+        result = []
+        result += self.__check_can_eat(board, current_position, (1, 1))
+        result += self.__check_can_eat(board, current_position, (-1, 1))
+        result += self.__check_can_eat(board, current_position, (1, -1))
+        result += self.__check_can_eat(board, current_position, (-1, -1))
         return result
 
     def draw(self, surface: pg.Surface, location: tuple[int, int], size: int, offset: int = 0) -> None:
