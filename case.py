@@ -5,18 +5,15 @@ from typing import TYPE_CHECKING
 import pygame as pg
 
 from colors_constants import *
-from config import GRID_SIZE
 
 if TYPE_CHECKING:
     from piece import Piece
 
 
 class Case:
-    def __init__(self, coordinates: tuple[int, int] | int):
+    def __init__(self, coordinates: tuple[int, int]):
         if isinstance(coordinates, tuple):
             self._x, self._y = coordinates
-        else:
-            self._x, self._y = divmod(coordinates, GRID_SIZE)
         self._color = DEFAULT_UNPLAYABLE_COLOR
 
     def get_coordinates(self) -> tuple[int, int]:
