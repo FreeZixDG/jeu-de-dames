@@ -6,6 +6,7 @@ from case import Case, PlayableCase
 from team import Team
 
 if TYPE_CHECKING:
+    from game import Game
     from board import Board
 
 OptionalPlayableCase = Optional[PlayableCase]
@@ -34,9 +35,9 @@ class Player:
     def get_name(self):
         return self.__name
 
-    def on_click(self, coordinates: tuple[int, int], board: Board):
+    def on_click(self, game: Game, coordinates: tuple[int, int]):
 
-        case = board.get_case(coordinates)
+        case = game.board.get_case(coordinates)
 
         if self.__contains_self_piece(case):
             self.deselect_case()
@@ -45,21 +46,26 @@ class Player:
             self.__selected_case.set_selected(True)
 
             piece = case.get_content()
-            valid_moves = piece.get_valid_moves(board, case.get_coordinates())
-            self.highlight_moves(board, valid_moves)
+            valid_moves = piece.get_valid_moves(game.board, case.get_coordinates())
+            self.highlight_moves(game.board, valid_moves)
 
 
         elif isinstance(case, PlayableCase) and case.is_landable():
             self.__move_piece(case)
             self.__his_turn = False
-            for c in self.__get_cases_between_start_and_end(board, case):
+            for c in self.__get_cases_between_start_and_end(game.board, case):
                 if c.contains_ennemy_piece(self.__team):
                     piece = c.get_content()
                     c.set_content(None)
                     self.__eaten_pieces += [piece]
 
-                    if case.get_content().get_can_eat(board, case.get_coordinates()):
+                    if case.get_content().get_can_eat(game.board, case.get_coordinates()):
                         self.__his_turn = True
+                        self.deselect_case()
+                        self.clear_possible_moves()
+                        from game import Game
+                        game.save_board_state()
+                        return
 
             self.deselect_case()
             self.clear_possible_moves()

@@ -3,6 +3,7 @@ from copy import deepcopy
 import pygame as pg
 
 from board import Board
+from case import PlayableCase
 from config import SCREEN_SIZE, GRID_SIZE, CELL_SIZE, OFFSET
 from player import Player
 from team import Team
@@ -22,7 +23,7 @@ class Game:
 
         self.history = []
 
-    def __save_board_state(self):
+    def save_board_state(self):
         from copy import deepcopy
         board = deepcopy(self.board)
 
@@ -53,6 +54,20 @@ class Game:
         self.player2 = deepcopy(self.history[-1]["player2"])
         self.render()
 
+    def FINAL_get_eat(self, case: PlayableCase):
+        # lister les coups possible de la piece dans la case
+        # si la liste est vide (c'est qu'on atteint une feuille)
+        # renvoyer le nombre de piece mangée et sortir
+
+        # pour chaque coup dans cette liste de coups
+        # jouer le coup (en gros manger)
+        # rebelotte
+        # vomir le coup (ctrl z en gros)
+
+        # renvoyer la liste de coup la plus longue
+
+        pass
+
     def handle_events(self):
         mouse_x, mouse_y = pg.mouse.get_pos()
         for event in pg.event.get():
@@ -62,17 +77,17 @@ class Game:
                 x = mouse_x // (self.size + self.offset)
                 y = mouse_y // (self.size + self.offset)
                 if self.player1.get_his_turn():
-                    self.player1.on_click((x, y), self.board)
+                    self.player1.on_click(self, (x, y))
                     print(f"({self.player1}) Clicked on {self.board.get_case((x, y))}")
                     if not self.player1.get_his_turn():
                         self.player2.set_his_turn(True)
-                        self.__save_board_state()
+                        self.save_board_state()
                 else:
-                    self.player2.on_click((x, y), self.board)
+                    self.player2.on_click(self, (x, y))
                     print(f"({self.player2}) Clicked on ({self.board.get_case((x, y))})")
                     if not self.player2.get_his_turn():
                         self.player1.set_his_turn(True)
-                        self.__save_board_state()
+                        self.save_board_state()
 
             elif event.type == pg.KEYDOWN:
                 if event.key == pg.K_a:
@@ -84,7 +99,7 @@ class Game:
                     self.undo()
                 elif event.key == pg.K_s:
                     print("Saving...")
-                    self.__save_board_state()
+                    self.save_board_state()
                 elif event.key == pg.K_t:
                     print(self.player1.get_his_turn())
                     print(self.player2.get_his_turn())
@@ -95,7 +110,7 @@ class Game:
         pg.display.flip()
 
     def run(self):
-        self.__save_board_state()
+        self.save_board_state()
         while self.running:
             self.handle_events()
             self.render()
