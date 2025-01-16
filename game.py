@@ -7,16 +7,37 @@ from team import Team
 
 
 class Game:
-    def __init__(self, init_board: str = None):
+    def __init__(self, init_board: str = None, player1: str = "Player1", player2: str = "Player 2"):
         pg.init()
         self.screen = pg.display.set_mode(SCREEN_SIZE)
         self.clock = pg.time.Clock()
         self.running = True
         self.board = Board(GRID_SIZE, init_board) if init_board else Board(GRID_SIZE)
-        self.player1 = Player(0, "jerem", Team.WHITE)
-        self.player2 = Player(1, "Player2", Team.BLACK)
+        self.player1 = Player(0, player1, Team.WHITE)
+        self.player2 = Player(1, player2, Team.BLACK)
         self.size = CELL_SIZE
         self.offset = OFFSET
+
+        self.history = []
+
+    def __save_board_state(self):
+        from copy import deepcopy
+        state = {
+            "board": deepcopy(self.board),
+            "player1": deepcopy(self.player1),
+            "player2": deepcopy(self.player2)
+        }
+        self.history.append(state)
+        print("state saved!")
+
+    def undo(self):
+        if len(self.history) <= 1:
+            print("No more history to undo")
+            return
+        self.history.pop()
+        self.board = self.history[-1]["board"]
+        self.player1 = self.history[-1]["player1"]
+        self.player2 = self.history[-1]["player2"]
 
     def handle_events(self):
         mouse_x, mouse_y = pg.mouse.get_pos()
@@ -41,6 +62,12 @@ class Game:
                     import pyperclip
                     pyperclip.copy(str(self.board))
                     print(self.board)
+                elif event.key == pg.K_z:
+                    print("Undoing...")
+                    self.undo()
+                elif event.key == pg.K_s:
+                    print("Saving...")
+                    self.__save_board_state()
 
     def render(self):
         self.screen.fill("black")
