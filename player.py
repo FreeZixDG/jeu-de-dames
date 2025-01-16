@@ -51,12 +51,16 @@ class Player:
 
         elif isinstance(case, PlayableCase) and case.is_landable():
             self.__move_piece(case)
-            self.set_his_turn(False)
-            for case in self.__get_cases_between_start_and_end(board, case):
-                if case.contains_ennemy_piece(self.__team):
-                    piece = case.get_content()
-                    case.set_content(None)
+            self.__his_turn = False
+            for c in self.__get_cases_between_start_and_end(board, case):
+                if c.contains_ennemy_piece(self.__team):
+                    piece = c.get_content()
+                    c.set_content(None)
                     self.__eaten_pieces += [piece]
+
+                    if case.get_content().get_can_eat(board, case.get_coordinates()):
+                        self.__his_turn = True
+
             self.deselect_case()
             self.clear_possible_moves()
         else:
