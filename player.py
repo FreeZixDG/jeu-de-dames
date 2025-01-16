@@ -51,9 +51,10 @@ class Player:
 
         elif isinstance(case, PlayableCase) and case.is_landable():
             self.__move_piece(case)
+            self.set_his_turn(False)
             for case in self.__get_cases_between_start_and_end(board, case):
-                piece = case.get_content()
-                if not (piece is None or piece.get_team() == self.__team):
+                if case.contains_ennemy_piece(self.__team):
+                    piece = case.get_content()
                     case.set_content(None)
                     self.__eaten_pieces += [piece]
             self.deselect_case()
@@ -94,7 +95,6 @@ class Player:
         case.set_content(piece)
         case.promote()
         self.__selected_case.set_content(None)
-        self.set_his_turn(False)
 
     def __get_cases_between_start_and_end(self, board: Board, case: PlayableCase) -> list[PlayableCase]:
         start_x, start_y = self.__selected_case.get_coordinates()

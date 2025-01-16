@@ -73,6 +73,7 @@ class Game:
                     if not self.player2.get_his_turn():
                         self.player1.set_his_turn(True)
                         self.__save_board_state()
+
             elif event.type == pg.KEYDOWN:
                 if event.key == pg.K_a:
                     import pyperclip

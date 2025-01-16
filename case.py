@@ -43,6 +43,11 @@ class PlayableCase(Case):
     def set_content(self, content: Piece | None):
         self.__content = content
 
+    def contains_ennemy_piece(self, team: Team) -> bool:
+        if self.__content is None:
+            return False
+        return self.__content.get_team() != team
+
     def set_selected(self, param: bool):
         self.__is_selected = param
         self._color = SELECTED_COLOR if param else DEFAULT_PLAYABLE_COLOR
