@@ -39,7 +39,7 @@ class Player:
         case = board.get_case(coordinates)
 
         if self.__contains_self_piece(case):
-            self.__deselect_case()
+            self.deselect_case()
             self.clear_possible_moves()
             self.__selected_case = case
             self.__selected_case.set_selected(True)
@@ -56,10 +56,10 @@ class Player:
                 if not (piece is None or piece.get_team() == self.__team):
                     case.set_content(None)
                     self.__eaten_pieces += [piece]
-            self.__deselect_case()
+            self.deselect_case()
             self.clear_possible_moves()
         else:
-            self.__deselect_case()
+            self.deselect_case()
             self.clear_possible_moves()
 
     def highlight_moves(self, board: Board, valid_moves: list[tuple[int, int]]):
@@ -70,9 +70,10 @@ class Player:
                 self.add_possible_move(move_case)  # Ou une couleur spécifique pour indiquer possibilité
                 self.__possible_moves[-1].set_landable(True)
 
-    def __deselect_case(self):
+    def deselect_case(self):
         if self.__selected_case is not None:
             self.__selected_case.set_selected(False)
+            self.__selected_case = None
 
     def add_possible_move(self, case: Case):
         self.__possible_moves += [case]

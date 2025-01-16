@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import pygame as pg
 
 from board import Board
@@ -22,22 +24,34 @@ class Game:
 
     def __save_board_state(self):
         from copy import deepcopy
+        board = deepcopy(self.board)
+
+        player1 = deepcopy(self.player1)
+        player1.clear_possible_moves()
+        player1.deselect_case()
+        player2 = deepcopy(self.player2)
+        player2.clear_possible_moves()
+        player2.deselect_case()
         state = {
-            "board": deepcopy(self.board),
-            "player1": deepcopy(self.player1),
-            "player2": deepcopy(self.player2)
+            "board": board,
+            "player1": player1,
+            "player2": player2
         }
         self.history.append(state)
         print("state saved!")
+        print(self.history)
 
     def undo(self):
         if len(self.history) <= 1:
             print("No more history to undo")
+            print(self.history)
             return
+        print(self.history)
         self.history.pop()
-        self.board = self.history[-1]["board"]
-        self.player1 = self.history[-1]["player1"]
-        self.player2 = self.history[-1]["player2"]
+        self.board = deepcopy(self.history[-1]["board"])
+        self.player1 = deepcopy(self.history[-1]["player1"])
+        self.player2 = deepcopy(self.history[-1]["player2"])
+        self.render()
 
     def handle_events(self):
         mouse_x, mouse_y = pg.mouse.get_pos()
@@ -52,11 +66,13 @@ class Game:
                     print(f"({self.player1}) Clicked on {self.board.get_case((x, y))}")
                     if not self.player1.get_his_turn():
                         self.player2.set_his_turn(True)
+                        self.__save_board_state()
                 else:
                     self.player2.on_click((x, y), self.board)
                     print(f"({self.player2}) Clicked on ({self.board.get_case((x, y))})")
                     if not self.player2.get_his_turn():
                         self.player1.set_his_turn(True)
+                        self.__save_board_state()
             elif event.type == pg.KEYDOWN:
                 if event.key == pg.K_a:
                     import pyperclip
@@ -68,6 +84,9 @@ class Game:
                 elif event.key == pg.K_s:
                     print("Saving...")
                     self.__save_board_state()
+                elif event.key == pg.K_t:
+                    print(self.player1.get_his_turn())
+                    print(self.player2.get_his_turn())
 
     def render(self):
         self.screen.fill("black")
@@ -75,6 +94,7 @@ class Game:
         pg.display.flip()
 
     def run(self):
+        self.__save_board_state()
         while self.running:
             self.handle_events()
             self.render()
