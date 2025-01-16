@@ -21,6 +21,19 @@ def moddiv(a, b):
     return a % b, a // b
 
 
+def factorize_string(string: str) -> str:
+    factorized = ""
+    count = 1
+    for i in range(1, len(string)):
+        if string[i] == string[i - 1]:
+            count += 1
+        else:
+            factorized += f"{count if count > 1 else ''}{string[i - 1]}"
+            count = 1
+    factorized += f"{count if count > 1 else ''}{string[-1]}"
+    return factorized
+
+
 class Board:
     def __init__(self, size: int, init: str = "20b10.20w"):
         self.__size = size
@@ -107,3 +120,19 @@ class Board:
 
     def is_case(self, coordinates: tuple[int, int], condition) -> bool:
         return condition(self.get_case(coordinates))
+
+    def __repr__(self):
+        result = ""
+        for case in self.__board.transpose().flatten():
+            if isinstance(case, PlayableCase):
+                lowercase = case.get_content().__class__.__name__ == "Piece"
+                if case.get_content() is None:
+                    result += '.'
+                    continue
+
+                match case.get_content().get_team():
+                    case Team.WHITE:
+                        result += 'w' if lowercase else 'W'
+                    case Team.BLACK:
+                        result += 'b' if lowercase else 'B'
+        return factorize_string(result)

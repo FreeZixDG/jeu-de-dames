@@ -7,12 +7,12 @@ from team import Team
 
 
 class Game:
-    def __init__(self):
+    def __init__(self, init_board: str = None):
         pg.init()
         self.screen = pg.display.set_mode(SCREEN_SIZE)
         self.clock = pg.time.Clock()
         self.running = True
-        self.board = Board(GRID_SIZE)
+        self.board = Board(GRID_SIZE, init_board) if init_board else Board(GRID_SIZE)
         self.player1 = Player(0, "jerem", Team.WHITE)
         self.player2 = Player(1, "Player2", Team.BLACK)
         self.size = CELL_SIZE
@@ -36,6 +36,11 @@ class Game:
                     print(f"({self.player2}) Clicked on ({self.board.get_case((x, y))})")
                     if not self.player2.get_his_turn():
                         self.player1.set_his_turn(True)
+            elif event.type == pg.KEYDOWN:
+                if event.key == pg.K_a:
+                    import pyperclip
+                    pyperclip.copy(str(self.board))
+                    print(self.board)
 
     def render(self):
         self.screen.fill("black")
