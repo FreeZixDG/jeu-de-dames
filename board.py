@@ -48,14 +48,14 @@ class Board:
                 if (i // (size // 2)) % 2 == 0:
                     self.__board[x, y] = Case((x, y))
                     x, y = moddiv(i * 2 + 1, size)
-                    self.put_playable_case((x, y), char)
+                    self.__put_playable_case((x, y), char)
                 else:
-                    self.put_playable_case((x, y), char)
+                    self.__put_playable_case((x, y), char)
                     x, y = moddiv(i * 2 + 1, size)
                     self.__board[(x, y)] = Case((x, y))
             total += num
 
-    def put_playable_case(self, coordinates: int | tuple[int, int], char: str):
+    def __put_playable_case(self, coordinates: int | tuple[int, int], char: str):
         match char:
             case 'b':
                 team = Team.BLACK
@@ -79,24 +79,7 @@ class Board:
         else:
             self.__board[coordinates] = PlayableCase(coordinates)
 
-    def draw(self, screen: pg.Surface, size: int, offset: int = 0):
-        for row in self.__board:
-            for case in row:
-                case.draw(screen, size, offset)
-        self.__draw_arrows(screen, size, offset)
-
-    def __draw_arrows(self, screen: pg.Surface, size: int, offset: int):
-        case = self.__get_selected_case()
-        if case is None:
-            return
-
-        landables = list(self.__get_landable_cases())
-        for i in range(len(landables)):
-            start_pos = add(mult(case.get_coordinates(), (size + offset)), int(size // 2))
-            end_pos = add(mult(landables[i].get_coordinates(), (size + offset)), int(size // 2))
-            pg.draw.line(screen, ARROWS_COLOR, start_pos, end_pos, 3)
-
-    def __get_selected_case(self):
+    def get_selected_case(self):
         return next(self.get_cases(lambda c: isinstance(c, PlayableCase) and c.is_selected()), None)
 
     def get_case(self, coordinates: tuple[int, int]) -> np.ndarray[tuple[int, int], np.dtype[Case]] | None:
@@ -105,21 +88,38 @@ class Board:
             return None
         return self.__board[x, y]
 
-    def is_valid_move(self, coordinates: tuple[int, int]) -> bool:
-        """Vérifie si des coordonnées sont valides pour le plateau."""
-        x, y = coordinates
-        return 0 <= x < self.__size \
-            and 0 <= y < self.__size
-
-    def __get_landable_cases(self):
+    def get_landing_cases(self):
         return self.get_cases(
-            lambda c: isinstance(c, PlayableCase) and c.is_landable())
+            lambda c: isinstance(c, PlayableCase) and c.can_land())
 
     def get_cases(self, condition):
         return (case for case in self.__board.flatten() if condition(case))
 
     def is_case(self, coordinates: tuple[int, int], condition) -> bool:
         return condition(self.get_case(coordinates))
+
+    def is_valid_move(self, coordinates: tuple[int, int]) -> bool:
+        """Vérifie si des coordonnées sont valides pour le plateau."""
+        x, y = coordinates
+        return 0 <= x < self.__size \
+            and 0 <= y < self.__size
+
+    def draw(self, screen: pg.Surface, size: int, offset: int = 0):
+        for row in self.__board:
+            for case in row:
+                case.draw(screen, size, offset)
+        self.__draw_arrows(screen, size, offset)
+
+    def __draw_arrows(self, screen: pg.Surface, size: int, offset: int):
+        case = self.get_selected_case()
+        if case is None:
+            return
+
+        cases_can_land = list(self.get_landing_cases())
+        for i in range(len(cases_can_land)):
+            start_pos = add(mult(case.get_coordinates(), (size + offset)), int(size // 2))
+            end_pos = add(mult(cases_can_land[i].get_coordinates(), (size + offset)), int(size // 2))
+            pg.draw.line(screen, ARROWS_COLOR, start_pos, end_pos, 3)
 
     def __repr__(self):
         result = ""

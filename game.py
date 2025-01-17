@@ -24,7 +24,6 @@ class Game:
         self.history = []
 
     def save_board_state(self):
-        from copy import deepcopy
         board = deepcopy(self.board)
 
         player1 = deepcopy(self.player1)

@@ -37,16 +37,25 @@ class Piece:
             return result
 
         if self._team is Team.WHITE:
-            result += self.__get_valid_moves_for_diagonal(board, current_position, (1, -1))
-            result += self.__get_valid_moves_for_diagonal(board, current_position, (-1, -1))
+            result += self.get_valid_moves_for_diagonal(board, current_position, (1, -1))
+            result += self.get_valid_moves_for_diagonal(board, current_position, (-1, -1))
         else:
-            result += self.__get_valid_moves_for_diagonal(board, current_position, (1, 1))
-            result += self.__get_valid_moves_for_diagonal(board, current_position, (-1, 1))
+            result += self.get_valid_moves_for_diagonal(board, current_position, (1, 1))
+            result += self.get_valid_moves_for_diagonal(board, current_position, (-1, 1))
 
         return result
 
-    def __get_valid_moves_for_diagonal(self, board: Board, current_position: tuple[int, int],
-                                       diagonal: tuple[int, int]) -> list[tuple[int, int]]:
+    def get_can_eat(self, board: Board, current_position: tuple[int, int]) -> list[
+        tuple[int, int]]:
+        result = []
+        result += self.get_can_eat_for_diagonal(board, current_position, (1, 1))
+        result += self.get_can_eat_for_diagonal(board, current_position, (-1, 1))
+        result += self.get_can_eat_for_diagonal(board, current_position, (1, -1))
+        result += self.get_can_eat_for_diagonal(board, current_position, (-1, -1))
+        return result
+
+    def get_valid_moves_for_diagonal(self, board: Board, current_position: tuple[int, int],
+                                     diagonal: tuple[int, int]) -> list[tuple[int, int]]:
         result = []
         dir_x, dir_y = diagonal
         x, y = current_position
@@ -63,8 +72,8 @@ class Piece:
 
         return result
 
-    def _get_can_eat_for_diagonal(self, board: Board, current_position: tuple[int, int],
-                                  diagonal: tuple[int, int]) -> list[tuple[int, int]]:
+    def get_can_eat_for_diagonal(self, board: Board, current_position: tuple[int, int],
+                                 diagonal: tuple[int, int]) -> list[tuple[int, int]]:
         dir_x, dir_y = diagonal
         x, y = current_position
         x, y = x + 1 * dir_x, y + 1 * dir_y
@@ -79,15 +88,6 @@ class Piece:
                 if board.is_valid_move((x, y)) and board.get_case((x, y)).get_content() is None:
                     return [(x, y)]
         return []
-
-    def get_can_eat(self, board: Board, current_position: tuple[int, int]) -> list[
-        tuple[int, int]]:
-        result = []
-        result += self._get_can_eat_for_diagonal(board, current_position, (1, 1))
-        result += self._get_can_eat_for_diagonal(board, current_position, (-1, 1))
-        result += self._get_can_eat_for_diagonal(board, current_position, (1, -1))
-        result += self._get_can_eat_for_diagonal(board, current_position, (-1, -1))
-        return result
 
     def draw(self, surface: pg.Surface, location: tuple[int, int], size: int, offset: int = 0) -> None:
 
@@ -105,26 +105,21 @@ class Queen(Piece):
     def __init__(self, team: Team):
         super().__init__(team)
 
-    def draw(self, surface: pg.Surface, location: tuple[int, int], size: int, offset: int = 0) -> None:
-        super().draw(surface, location, size, offset)
-        pg.draw.circle(surface, self._color_out,
-                       (location[0] * (size + offset) + size / 2, location[1] * (size + offset) + size / 2), size / 6)
-
     def get_valid_moves(self, board: Board, current_position: tuple[int, int]) -> list[tuple[int, int]]:
         result = []
         result += self.get_can_eat(board, current_position)
         if result:
             return result
 
-        result += self.__get_valid_moves_for_diagonal(board, current_position, (1, 1))
-        result += self.__get_valid_moves_for_diagonal(board, current_position, (-1, -1))
-        result += self.__get_valid_moves_for_diagonal(board, current_position, (-1, 1))
-        result += self.__get_valid_moves_for_diagonal(board, current_position, (1, -1))
+        result += self.get_valid_moves_for_diagonal(board, current_position, (1, 1))
+        result += self.get_valid_moves_for_diagonal(board, current_position, (-1, -1))
+        result += self.get_valid_moves_for_diagonal(board, current_position, (-1, 1))
+        result += self.get_valid_moves_for_diagonal(board, current_position, (1, -1))
 
         return result
 
-    def _get_can_eat_for_diagonal(self, board: Board, current_position: tuple[int, int],
-                                  diagonal: tuple[int, int]) -> list[tuple[int, int]]:
+    def get_can_eat_for_diagonal(self, board: Board, current_position: tuple[int, int],
+                                 diagonal: tuple[int, int]) -> list[tuple[int, int]]:
         dir_x, dir_y = diagonal
         x, y = current_position
         result = []
@@ -147,8 +142,8 @@ class Queen(Piece):
                     has_met_opponent = True
         return result
 
-    def __get_valid_moves_for_diagonal(self, board: Board, current_position: tuple[int, int],
-                                       diagonal: tuple[int, int]) -> list[tuple[int, int]]:
+    def get_valid_moves_for_diagonal(self, board: Board, current_position: tuple[int, int],
+                                     diagonal: tuple[int, int]) -> list[tuple[int, int]]:
         dir_x, dir_y = diagonal
         x, y = current_position
         result = []
@@ -164,6 +159,11 @@ class Queen(Piece):
                     break
 
         return result
+
+    def draw(self, surface: pg.Surface, location: tuple[int, int], size: int, offset: int = 0) -> None:
+        super().draw(surface, location, size, offset)
+        pg.draw.circle(surface, self._color_out,
+                       (location[0] * (size + offset) + size / 2, location[1] * (size + offset) + size / 2), size / 6)
 
     def __repr__(self):
         if self._team is not None:

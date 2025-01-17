@@ -50,11 +50,11 @@ class Player:
             self.highlight_moves(game.board, valid_moves)
 
 
-        elif isinstance(case, PlayableCase) and case.is_landable():
+        elif isinstance(case, PlayableCase) and case.can_land():
             self.__move_piece(case)
             self.__his_turn = False
             for c in self.__get_cases_between_start_and_end(game.board, case):
-                if c.contains_ennemy_piece(self.__team):
+                if c.contains_enemy_piece(self.__team):
                     piece = c.get_content()
                     c.set_content(None)
                     self.__eaten_pieces += [piece]
@@ -79,7 +79,7 @@ class Player:
             move_case = board.get_case(move)
             if isinstance(move_case, PlayableCase) and not move_case.get_content():  # Case vide uni
                 self.add_possible_move(move_case)  # Ou une couleur spécifique pour indiquer possibilité
-                self.__possible_moves[-1].set_landable(True)
+                self.__possible_moves[-1].set_can_land(True)
 
     def deselect_case(self):
         if self.__selected_case is not None:
@@ -91,7 +91,7 @@ class Player:
 
     def clear_possible_moves(self):
         for case in self.__possible_moves:
-            case.set_landable(False)
+            case.set_can_land(False)
         self.__possible_moves.clear()
 
     def __contains_self_piece(self, case: Case):
