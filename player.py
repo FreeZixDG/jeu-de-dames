@@ -18,16 +18,16 @@ class Player:
         self.__name = name
         self.__team = team
         self.__eaten_pieces = []
-        self.__his_turn = True if self.__team == Team.WHITE else False
+        # self.__his_turn = True if self.__team == Team.WHITE else False
 
         self.__selected_case: OptionalPlayableCase = None
         self.__possible_moves: list[PlayableCase] = []
 
-    def get_his_turn(self) -> bool:
+    """def get_his_turn(self) -> bool:
         return self.__his_turn
 
     def set_his_turn(self, value: bool):
-        self.__his_turn = value
+        self.__his_turn = value"""
 
     def get_player_id(self) -> int:
         return self.__id
@@ -35,7 +35,8 @@ class Player:
     def get_name(self):
         return self.__name
 
-    def on_click(self, game: Game, coordinates: tuple[int, int]):
+    def on_click(self, game: Game, coordinates: tuple[int, int]) -> bool:
+        has_played = False
 
         case = game.board.get_case(coordinates)
 
@@ -52,7 +53,7 @@ class Player:
 
         elif isinstance(case, PlayableCase) and case.can_land():
             self.__move_piece(case)
-            self.__his_turn = False
+            has_played = True
             for c in self.__get_cases_between_start_and_end(game.board, case):
                 if c.contains_enemy_piece(self.__team):
                     piece = c.get_content()
@@ -60,18 +61,20 @@ class Player:
                     self.__eaten_pieces += [piece]
 
                     if case.get_content().get_can_eat(game.board, case.get_coordinates()):
-                        self.__his_turn = True
+                        has_played = False
                         self.deselect_case()
                         self.clear_possible_moves()
                         from game import Game
                         game.save_board_state()
-                        return
+                        return has_played
 
             self.deselect_case()
             self.clear_possible_moves()
         else:
             self.deselect_case()
             self.clear_possible_moves()
+
+        return has_played
 
     def highlight_moves(self, board: Board, valid_moves: list[tuple[int, int]]):
         """Met en évidence les cases accessibles."""

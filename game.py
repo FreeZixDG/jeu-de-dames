@@ -18,6 +18,8 @@ class Game:
         self.board = Board(GRID_SIZE, init_board) if init_board else Board(GRID_SIZE)
         self.player1 = Player(0, player1, Team.WHITE)
         self.player2 = Player(1, player2, Team.BLACK)
+
+        self.current_player = self.player1
         self.size = CELL_SIZE
         self.offset = OFFSET
 
@@ -32,10 +34,13 @@ class Game:
         player2 = deepcopy(self.player2)
         player2.clear_possible_moves()
         player2.deselect_case()
+
+        current_player = True if self.current_player == self.player1 else False
         state = {
             "board": board,
             "player1": player1,
-            "player2": player2
+            "player2": player2,
+            "current_player": current_player,
         }
         self.history.append(state)
         print("state saved!")
@@ -51,6 +56,7 @@ class Game:
         self.board = deepcopy(self.history[-1]["board"])
         self.player1 = deepcopy(self.history[-1]["player1"])
         self.player2 = deepcopy(self.history[-1]["player2"])
+        self.current_player = self.player1 if self.history[-1]["current_player"] == True else self.player2
         self.render()
 
     def FINAL_get_eat(self, case: PlayableCase, result=None) -> list[tuple[int, int]]:
@@ -75,6 +81,10 @@ class Game:
 
         pass
 
+    def switch_current_player(self):
+        """Switch the current player to the other player."""
+        self.current_player = self.player1 if self.current_player == self.player2 else self.player2
+    
     def handle_events(self):
         mouse_x, mouse_y = pg.mouse.get_pos()
         for event in pg.event.get():
@@ -83,18 +93,12 @@ class Game:
             elif event.type == pg.MOUSEBUTTONDOWN:
                 x = mouse_x // (self.size + self.offset)
                 y = mouse_y // (self.size + self.offset)
-                if self.player1.get_his_turn():
-                    self.player1.on_click(self, (x, y))
-                    print(f"({self.player1}) Clicked on {self.board.get_case((x, y))}")
-                    if not self.player1.get_his_turn():
-                        self.player2.set_his_turn(True)
-                        self.save_board_state()
-                else:
-                    self.player2.on_click(self, (x, y))
-                    print(f"({self.player2}) Clicked on ({self.board.get_case((x, y))})")
-                    if not self.player2.get_his_turn():
-                        self.player1.set_his_turn(True)
-                        self.save_board_state()
+
+                has_played = self.current_player.on_click(self, (x, y))
+                print(f"({self.player1}) Clicked on {self.board.get_case((x, y))}")
+                if has_played:
+                    self.switch_current_player()
+                    self.save_board_state()
 
             elif event.type == pg.KEYDOWN:
                 if event.key == pg.K_a:
@@ -107,9 +111,6 @@ class Game:
                 elif event.key == pg.K_s:
                     print("Saving...")
                     self.save_board_state()
-                elif event.key == pg.K_t:
-                    print(self.player1.get_his_turn())
-                    print(self.player2.get_his_turn())
 
     def render(self):
         self.screen.fill("black")
@@ -121,5 +122,5 @@ class Game:
         while self.running:
             self.handle_events()
             self.render()
-            self.clock.tick(10)
+            self.clock.tick(24)
         pg.quit()
