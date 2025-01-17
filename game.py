@@ -53,15 +53,23 @@ class Game:
         self.player2 = deepcopy(self.history[-1]["player2"])
         self.render()
 
-    def FINAL_get_eat(self, case: PlayableCase):
-        # lister les coups possible de la piece dans la case
-        # si la liste est vide (c'est qu'on atteint une feuille)
-        # renvoyer le nombre de piece mangée et sortir
+    def FINAL_get_eat(self, case: PlayableCase, result=None) -> list[tuple[int, int]]:
+        if result is None: result = []
+
+        # lister les coups possibles de la piece dans la case
+        possible_moves = case.get_content().get_can_eat(self.board, case.get_coordinates())
+        # si la liste est vide (c'est qu'on atteint une feuille).
+        if not possible_moves:
+            # renvoyer le nombre de piece mangée et sortir
+            return result
+
 
         # pour chaque coup dans cette liste de coups
-        # jouer le coup (en gros manger)
-        # rebelotte
-        # vomir le coup (ctrl z en gros)
+        for move in possible_moves:
+            pass
+            # jouer le coup (en gros manger)
+            # rebelote
+            # vomir le coup (ctrl z en gros)
 
         # renvoyer la liste de coup la plus longue
 
