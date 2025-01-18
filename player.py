@@ -23,12 +23,6 @@ class Player:
         self.__selected_case: OptionalPlayableCase = None
         self.__possible_moves: list[PlayableCase] = []
 
-    """def get_his_turn(self) -> bool:
-        return self.__his_turn
-
-    def set_his_turn(self, value: bool):
-        self.__his_turn = value"""
-
     def get_player_id(self) -> int:
         return self.__id
 
