@@ -24,8 +24,6 @@ class Piece:
             case Team.BLACK:
                 self._color_in = BLACK_COLOR
                 self._color_out = WHITE_COLOR
-            case _:
-                return
 
     def get_team(self):
         return self._team
