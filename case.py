@@ -33,13 +33,13 @@ class PlayableCase(Case):
         self.__is_selected = False
         self.__can_land = False
         self._color = DEFAULT_PLAYABLE_COLOR
-        self.__content = content
+        self.__piece = content
 
-    def get_content(self) -> Piece:
-        return self.__content
+    def get_piece(self) -> Piece:
+        return self.__piece
 
-    def set_content(self, content: Piece | None) -> None:
-        self.__content = content
+    def set_piece(self, content: Piece | None) -> None:
+        self.__piece = content
 
     def set_selected(self, param: bool) -> None:
         self.__is_selected = param
@@ -49,9 +49,9 @@ class PlayableCase(Case):
         self.__can_land = param
 
     def contains_enemy_piece(self, team: Team) -> bool:
-        if self.__content is None:
+        if self.__piece is None:
             return False
-        return self.__content.get_team() != team
+        return self.__piece.get_team() != team
 
     def is_selected(self) -> bool:
         return self.__is_selected
@@ -61,18 +61,18 @@ class PlayableCase(Case):
 
     def promote(self) -> None:
         from piece import Queen
-        if self._y == 0 and self.__content.get_team() is Team.WHITE:
-            self.__content = Queen(self.__content.get_team())
-        elif self._y == GRID_SIZE - 1 and self.__content.get_team() is Team.BLACK:
-            self.__content = Queen(self.__content.get_team())
+        if self._y == 0 and self.__piece.get_team() is Team.WHITE:
+            self.__piece = Queen(self.__piece.get_team())
+        elif self._y == GRID_SIZE - 1 and self.__piece.get_team() is Team.BLACK:
+            self.__piece = Queen(self.__piece.get_team())
 
     def draw(self, surface: pg.Surface, size: int, offset: int = 0) -> None:
         super().draw(surface, size, offset)
-        if self.__content is not None:
-            self.__content.draw(surface, self.get_coordinates(), size, offset)
+        if self.__piece is not None:
+            self.__piece.draw(surface, self.get_coordinates(), size, offset)
         elif self.__can_land:
             pg.draw.circle(surface, ARROWS_COLOR,
                            (self._x * (size + offset) + size / 2, self._y * (size + offset) + size / 2), size / 6)
 
     def __repr__(self) -> str:
-        return f"{super().__repr__()} {self.__content}"
+        return f"{super().__repr__()} {self.__piece}"

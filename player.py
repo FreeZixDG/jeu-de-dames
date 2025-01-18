@@ -18,7 +18,6 @@ class Player:
         self.__name = name
         self.__team = team
         self.__eaten_pieces = []
-        # self.__his_turn = True if self.__team == Team.WHITE else False
 
         self.__selected_case: OptionalPlayableCase = None
         self.__possible_moves: list[PlayableCase] = []
@@ -28,6 +27,9 @@ class Player:
 
     def get_name(self):
         return self.__name
+
+    def get_team(self) -> Team:
+        return self.__team
 
     def on_click(self, game: Game, coordinates: tuple[int, int]) -> bool:
         has_played = False
@@ -40,26 +42,28 @@ class Player:
             self.__selected_case = case
             self.__selected_case.set_selected(True)
 
-            piece = case.get_content()
-            valid_moves = piece.get_valid_moves(game.board, case.get_coordinates())
+            piece = case.get_piece()
+            valid_moves = piece.get_valid_moves(game, case.get_coordinates())
             self.highlight_moves(game.board, valid_moves)
 
 
         elif isinstance(case, PlayableCase) and case.can_land():
             self.__move_piece(case)
             has_played = True
-            for c in self.__get_cases_between_start_and_end(game.board, case):
+            for c in game.board.get_cases_between_start_and_end(self.__selected_case, case):
                 if c.contains_enemy_piece(self.__team):
-                    piece = c.get_content()
-                    c.set_content(None)
+                    piece = c.get_piece()
+                    c.set_piece(None)
                     self.__eaten_pieces += [piece]
 
-                    if case.get_content().get_can_eat(game.board, case.get_coordinates()):
+                    # if case.get_piece().get_can_eat(game, case.get_coordinates()):
+                    if game.compute_eating_moves(case):
                         has_played = False
                         self.deselect_case()
                         self.clear_possible_moves()
                         from game import Game
                         game.save_board_state()
+                        game.render()
                         return has_played
 
             self.deselect_case()
@@ -68,13 +72,14 @@ class Player:
             self.deselect_case()
             self.clear_possible_moves()
 
+        game.render()
         return has_played
 
     def highlight_moves(self, board: Board, valid_moves: list[tuple[int, int]]):
         """Met en évidence les cases accessibles."""
         for move in valid_moves:
             move_case = board.get_case(move)
-            if isinstance(move_case, PlayableCase) and not move_case.get_content():  # Case vide uni
+            if isinstance(move_case, PlayableCase) and not move_case.get_piece():  # Case vide uni
                 self.add_possible_move(move_case)  # Ou une couleur spécifique pour indiquer possibilité
                 self.__possible_moves[-1].set_can_land(True)
 
@@ -93,31 +98,15 @@ class Player:
 
     def __contains_self_piece(self, case: Case):
         return isinstance(case, PlayableCase) \
-            and case.get_content() is not None \
-            and case.get_content().get_team() == self.__team
+            and case.get_piece() is not None \
+            and case.get_piece().get_team() == self.__team
 
     def __move_piece(self, case: PlayableCase):
-        piece = self.__selected_case.get_content()
+        piece = self.__selected_case.get_piece()
 
-        case.set_content(piece)
+        case.set_piece(piece)
         case.promote()
-        self.__selected_case.set_content(None)
-
-    def __get_cases_between_start_and_end(self, board: Board, case: PlayableCase) -> list[PlayableCase]:
-        start_x, start_y = self.__selected_case.get_coordinates()
-        end_x, end_y = case.get_coordinates()
-        step_x = 1 if end_x > start_x else -1
-        step_y = 1 if end_y > start_y else -1
-
-        current_x, current_y = start_x + step_x, start_y + step_y
-        result = []
-
-        while (current_x, current_y) != (end_x, end_y):
-            result.append(board.get_case((current_x, current_y)))
-            current_x += step_x
-            current_y += step_y
-
-        return result
+        self.__selected_case.set_piece(None)
 
     def __repr__(self):
         return f"{self.__name} ({self.__team.value}) {self.__eaten_pieces}"

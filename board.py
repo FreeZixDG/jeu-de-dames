@@ -41,6 +41,31 @@ class Board:
 
         self.init = [(int(num) if num else 1, char) for num, char in re.findall(r"(\d*)([wW]|[bB]|[.])", init)]
         total = 0
+
+        def put_playable_case(coordinates, char):
+            match char:
+                case 'b':
+                    team = Team.BLACK
+                    piece_type = Piece
+                case 'w':
+                    team = Team.WHITE
+                    piece_type = Piece
+                case 'B':
+                    team = Team.BLACK
+                    piece_type = Queen
+                case 'W':
+                    team = Team.WHITE
+                    piece_type = Queen
+                case '.':
+                    team = None
+                    piece_type = None
+                case _:
+                    raise ValueError("Invalid character in init string")
+            if team is not None:
+                self.__board[coordinates] = PlayableCase(coordinates, content=piece_type(team))
+            else:
+                self.__board[coordinates] = PlayableCase(coordinates)
+
         for num, char in self.init:
             for i in range(num):
                 i += total
@@ -48,41 +73,18 @@ class Board:
                 if (i // (size // 2)) % 2 == 0:
                     self.__board[x, y] = Case((x, y))
                     x, y = moddiv(i * 2 + 1, size)
-                    self.__put_playable_case((x, y), char)
+                    put_playable_case((x, y), char)
                 else:
-                    self.__put_playable_case((x, y), char)
+                    put_playable_case((x, y), char)
                     x, y = moddiv(i * 2 + 1, size)
                     self.__board[(x, y)] = Case((x, y))
             total += num
 
-    def __put_playable_case(self, coordinates: int | tuple[int, int], char: str):
-        match char:
-            case 'b':
-                team = Team.BLACK
-                piece_type = Piece
-            case 'w':
-                team = Team.WHITE
-                piece_type = Piece
-            case 'B':
-                team = Team.BLACK
-                piece_type = Queen
-            case 'W':
-                team = Team.WHITE
-                piece_type = Queen
-            case '.':
-                team = None
-                piece_type = None
-            case _:
-                raise ValueError("Invalid character in init string")
-        if team is not None:
-            self.__board[coordinates] = PlayableCase(coordinates, content=piece_type(team))
-        else:
-            self.__board[coordinates] = PlayableCase(coordinates)
 
     def get_selected_case(self):
         return next(self.get_cases(lambda c: isinstance(c, PlayableCase) and c.is_selected()), None)
 
-    def get_case(self, coordinates: tuple[int, int]) -> np.ndarray[tuple[int, int], np.dtype[Case]] | None:
+    def get_case(self, coordinates: tuple[int, int]) -> Case | None:
         x, y = coordinates
         if not (0 <= x < self.__size and 0 <= y < self.__size):
             return None
@@ -94,6 +96,22 @@ class Board:
 
     def get_cases(self, condition):
         return (case for case in self.__board.flatten() if condition(case))
+
+    def get_cases_between_start_and_end(self, start: PlayableCase, end: PlayableCase) -> list[PlayableCase]:
+        start_x, start_y = start.get_coordinates()
+        end_x, end_y = end.get_coordinates()
+        step_x = 1 if end_x > start_x else -1
+        step_y = 1 if end_y > start_y else -1
+
+        current_x, current_y = start_x + step_x, start_y + step_y
+        result = []
+
+        while (current_x, current_y) != (end_x, end_y):
+            result.append(self.get_case((current_x, current_y)))
+            current_x += step_x
+            current_y += step_y
+
+        return result
 
     def is_case(self, coordinates: tuple[int, int], condition) -> bool:
         return condition(self.get_case(coordinates))
@@ -125,12 +143,12 @@ class Board:
         result = ""
         for case in self.__board.transpose().flatten():
             if isinstance(case, PlayableCase):
-                lowercase = case.get_content().__class__.__name__ == "Piece"
-                if case.get_content() is None:
+                lowercase = case.get_piece().__class__.__name__ == "Piece"
+                if case.get_piece() is None:
                     result += '.'
                     continue
 
-                match case.get_content().get_team():
+                match case.get_piece().get_team():
                     case Team.WHITE:
                         result += 'w' if lowercase else 'W'
                     case Team.BLACK:
