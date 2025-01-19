@@ -48,10 +48,8 @@ class PlayableCase(Case):
     def set_can_land(self, param: bool) -> None:
         self.__can_land = param
 
-    def contains_enemy_piece(self, team: Team) -> bool:
-        if self.__piece is None:
-            return False
-        return self.__piece.get_team() != team
+    def contains_piece_of_team(self, team: Team) -> bool:
+        return self.__piece is not None and self.__piece.get_team() == team
 
     def is_selected(self) -> bool:
         return self.__is_selected

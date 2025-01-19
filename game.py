@@ -120,7 +120,8 @@ class Game:
 
         cases_between = self.board.get_cases_between_start_and_end(start_case, end_case)
         for case in cases_between:
-            if case.contains_enemy_piece(self.current_player.get_team()):
+            opposite_team = self.player1.get_team() if self.current_player == self.player2 else self.player2.get_team()
+            if case.contains_piece_of_team(opposite_team):
                 # print(f"adding {case} to marked !")
                 eaten_case = case.get_coordinates()
                 self.__marked_cases += [eaten_case]

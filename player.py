@@ -53,7 +53,7 @@ class Player:
                         case.set_piece(None)
                         self.__eaten_pieces += [piece]
 
-        elif self.__contains_self_piece(case):
+        elif case.contains_piece_of_team(self.get_team()):
             self.deselect_case()
             self.clear_possible_moves(game.board)
             self.__selected_case = case
@@ -83,10 +83,6 @@ class Player:
                 case = board.get_playable_case(coord)
                 case.set_can_land(False)
         self.__possible_moves.clear()
-
-    def __contains_self_piece(self, case: PlayableCase):
-        return case.get_piece() is not None \
-            and case.get_piece().get_team() == self.__team
 
     def __move_piece(self, case: PlayableCase):
         piece = self.__selected_case.get_piece()
