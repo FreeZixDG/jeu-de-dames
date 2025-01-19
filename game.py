@@ -29,6 +29,7 @@ class Game:
         self.history = []
 
         self.is_edit_mode = False
+        self.cases_who_can_play = []
 
     def get_marked_cases(self):
         return self.__marked_cases
@@ -131,7 +132,9 @@ class Game:
         """Switch the current player to the other player."""
         self.current_player = self.player1 if self.current_player == self.player2 else self.player2
 
-    def find_cases_who_can_play(self):
+    def find_cases_who_can_play(self) -> list[PlayableCase]:
+        if self.cases_who_can_play:
+            return []
         # liste toutes les cases et leurs moves possibles
         cases_data = []
         for case in self.board.get_cases(
@@ -145,10 +148,21 @@ class Game:
 
         max_eaten = max(total for _, total in cases_with_totals)
 
-        return [case for case, total in cases_with_totals if total == max_eaten]
+        result = [case for case, total in cases_with_totals if total == max_eaten]
+        if not result:
+            return []
+        self.cases_who_can_play = result
+        return self.cases_who_can_play
 
     def highlight_cases_who_can_play(self):
-        pass
+        case_who_can_play = self.find_cases_who_can_play()
+        for case in case_who_can_play:
+            case.set_can_play(True)
+
+    def clear_cases_who_can_play(self):
+        for case in self.cases_who_can_play:
+            case.set_can_play(False)
+        self.cases_who_can_play.clear()
 
     def handle_events(self):
         mouse_x, mouse_y = pg.mouse.get_pos()
@@ -235,6 +249,7 @@ class Game:
                 case.draw(self.screen, self.size, self.offset)
 
         self.highlight_moves()
+        self.highlight_cases_who_can_play()
 
     def highlight_moves(self):
         """Met en évidence les cases accessibles."""

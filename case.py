@@ -34,6 +34,14 @@ class PlayableCase(Case):
         self.__can_land = False
         self._color = DEFAULT_PLAYABLE_COLOR
         self.__piece = content
+        self.__can_play = False
+
+    def get_can_play(self):
+        return self.__can_play
+
+    def set_can_play(self, can_play: bool):
+        self.__can_play = can_play
+        self.determine_color()
 
     def get_piece(self) -> Piece:
         return self.__piece
@@ -43,7 +51,7 @@ class PlayableCase(Case):
 
     def set_selected(self, param: bool) -> None:
         self.__is_selected = param
-        self._color = SELECTED_COLOR if param else DEFAULT_PLAYABLE_COLOR
+        self.determine_color()
 
     def set_can_land(self, param: bool) -> None:
         self.__can_land = param
@@ -72,5 +80,14 @@ class PlayableCase(Case):
             pg.draw.circle(surface, ARROWS_COLOR,
                            (self._x * (size + offset) + size / 2, self._y * (size + offset) + size / 2), size / 6)
 
+
     def __repr__(self) -> str:
         return f"{super().__repr__()} {self.__piece}"
+
+    def determine_color(self):
+        if self.is_selected():
+            self._color = SELECTED_COLOR
+        elif self.__can_play:
+            self._color = CAN_PLAY_COLOR
+        else:
+            self._color = DEFAULT_PLAYABLE_COLOR

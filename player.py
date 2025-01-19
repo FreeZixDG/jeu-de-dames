@@ -43,17 +43,20 @@ class Player:
             pass
 
         elif case.can_land():
-            has_played = True
-            for move in self.__move_paths:
-                if move["move_path"][-1] == case.get_coordinates():
-                    self.__move_piece(game.board.get_case(move["move_path"][-1]))
-                    for coord in move["eaten_pieces"]:
-                        case = game.board.get_case(coord)
-                        piece = case.get_piece()
-                        case.set_piece(None)
-                        self.__eaten_pieces += [piece]
+            if self.__selected_case.get_can_play():
+                has_played = True
+                print("clearing")
+                game.clear_cases_who_can_play()
+                for move in self.__move_paths:
+                    if move["move_path"][-1] == case.get_coordinates():
+                        self.__move_piece(game.board.get_case(move["move_path"][-1]))
+                        for coord in move["eaten_pieces"]:
+                            case = game.board.get_case(coord)
+                            piece = case.get_piece()
+                            case.set_piece(None)
+                            self.__eaten_pieces += [piece]
 
-        elif case.contains_piece_of_team(self.get_team()):
+        elif case.contains_piece_of_team(self.get_team()) and case.get_can_play():
             self.deselect_case()
             self.clear_possible_moves(game.board)
             self.__selected_case = case
