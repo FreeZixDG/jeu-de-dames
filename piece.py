@@ -28,32 +28,31 @@ class Piece:
     def get_team(self):
         return self._team
 
-    def get_valid_moves(self, game: Game, current_position: tuple[int, int]) -> list[tuple[int, int]]:
-        result = []
-        result += self.get_can_eat(game, current_position)
-        # result += game.compute_eating_moves(game.board.get_case(current_position))
+    def get_valid_paths(self, game: Game, current_position: tuple[int, int]) -> list[list[tuple[int, int]]]:
+        # result += self.get_can_eat(game, current_position)
+        result = game.compute_eating_moves(game.board.get_case(current_position))
         if result:
             return result
 
         if self._team is Team.WHITE:
-            result += self.get_valid_moves_for_diagonal(game, current_position, (1, -1))
             result += self.get_valid_moves_for_diagonal(game, current_position, (-1, -1))
+            result += self.get_valid_moves_for_diagonal(game, current_position, (1, -1))
         else:
-            result += self.get_valid_moves_for_diagonal(game, current_position, (1, 1))
             result += self.get_valid_moves_for_diagonal(game, current_position, (-1, 1))
+            result += self.get_valid_moves_for_diagonal(game, current_position, (1, 1))
 
         return result
 
     def get_can_eat(self, game: Game, current_position: tuple[int, int]) -> list[tuple[int, int]]:
         result = []
         result += self.get_can_eat_for_diagonal(game, current_position, (1, 1))
-        result += self.get_can_eat_for_diagonal(game, current_position, (-1, 1))
         result += self.get_can_eat_for_diagonal(game, current_position, (1, -1))
         result += self.get_can_eat_for_diagonal(game, current_position, (-1, -1))
+        result += self.get_can_eat_for_diagonal(game, current_position, (-1, 1))
         return result
 
     def get_valid_moves_for_diagonal(self, game: Game, current_position: tuple[int, int],
-                                     diagonal: tuple[int, int]) -> list[tuple[int, int]]:
+                                     diagonal: tuple[int, int]) -> list[list[tuple[int, int]]]:
         result = []
         dir_x, dir_y = diagonal
         x, y = current_position
@@ -64,7 +63,8 @@ class Piece:
             return result
         if isinstance(case, PlayableCase):
             if case.get_piece() is None:
-                return [(x, y)]
+                result.append({"move_path": [(x, y)], "eaten_pieces": []})
+                return result
             elif case.get_piece().get_team() == self._team:
                 return []
 
@@ -105,17 +105,17 @@ class Queen(Piece):
     def __init__(self, team: Team):
         super().__init__(team)
 
-    def get_valid_moves(self, game: Game, current_position: tuple[int, int]) -> list[tuple[int, int]]:
+    def get_valid_paths(self, game: Game, current_position: tuple[int, int]) -> list[tuple[int, int]]:
         result = []
-        result += self.get_can_eat(game, current_position)
-        #result += game.compute_eating_moves(game.board.get_case(current_position))
+        # result += self.get_can_eat(game, current_position)
+        result += game.compute_eating_moves(game.board.get_case(current_position))
         if result:
             return result
 
         result += self.get_valid_moves_for_diagonal(game, current_position, (1, 1))
+        result += self.get_valid_moves_for_diagonal(game, current_position, (1, -1))
         result += self.get_valid_moves_for_diagonal(game, current_position, (-1, -1))
         result += self.get_valid_moves_for_diagonal(game, current_position, (-1, 1))
-        result += self.get_valid_moves_for_diagonal(game, current_position, (1, -1))
 
         return result
 
@@ -146,7 +146,7 @@ class Queen(Piece):
         return result
 
     def get_valid_moves_for_diagonal(self, game: Game, current_position: tuple[int, int],
-                                     diagonal: tuple[int, int]) -> list[tuple[int, int]]:
+                                     diagonal: tuple[int, int]) -> list[list[tuple[int, int]]]:
         dir_x, dir_y = diagonal
         x, y = current_position
         result = []
@@ -157,7 +157,7 @@ class Queen(Piece):
                 break
             if isinstance(case, PlayableCase):
                 if case.get_piece() is None:
-                    result.append((x, y))
+                    result.append({"move_path": [(x, y)], "eaten_pieces": []})
                 else:
                     break
 

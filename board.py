@@ -1,20 +1,10 @@
 import re
 
 import numpy as np
-import pygame as pg
 
 from case import Case, PlayableCase
-from colors_constants import *
 from piece import Piece, Queen
 from team import Team
-
-
-def mult(t: tuple[int | float, ...], c: int | float):
-    return tuple(map(lambda x: x * c, t))
-
-
-def add(t: tuple[int | float, ...], c: int | float):
-    return tuple(map(lambda x: x + c, t))
 
 
 def moddiv(a, b):
@@ -80,7 +70,8 @@ class Board:
                     self.__board[(x, y)] = Case((x, y))
             total += num
 
-
+    def get_board(self):
+        return self.__board
     def get_selected_case(self):
         return next(self.get_cases(lambda c: isinstance(c, PlayableCase) and c.is_selected()), None)
 
@@ -122,22 +113,7 @@ class Board:
         return 0 <= x < self.__size \
             and 0 <= y < self.__size
 
-    def draw(self, screen: pg.Surface, size: int, offset: int = 0):
-        for row in self.__board:
-            for case in row:
-                case.draw(screen, size, offset)
-        self.__draw_arrows(screen, size, offset)
 
-    def __draw_arrows(self, screen: pg.Surface, size: int, offset: int):
-        case = self.get_selected_case()
-        if case is None:
-            return
-
-        cases_can_land = list(self.get_landing_cases())
-        for i in range(len(cases_can_land)):
-            start_pos = add(mult(case.get_coordinates(), (size + offset)), int(size // 2))
-            end_pos = add(mult(cases_can_land[i].get_coordinates(), (size + offset)), int(size // 2))
-            pg.draw.line(screen, ARROWS_COLOR, start_pos, end_pos, 3)
 
     def __repr__(self):
         result = ""

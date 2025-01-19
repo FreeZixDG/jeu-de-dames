@@ -59,7 +59,7 @@ class PlayableCase(Case):
     def can_land(self) -> bool:
         return self.__can_land
 
-    def promote(self) -> None:
+    def try_promotion(self) -> None:
         from piece import Queen
         if self._y == 0 and self.__piece.get_team() is Team.WHITE:
             self.__piece = Queen(self.__piece.get_team())

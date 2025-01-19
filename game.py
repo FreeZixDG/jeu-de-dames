@@ -5,6 +5,7 @@ import pygame as pg
 
 from board import Board
 from case import PlayableCase
+from colors_constants import ARROWS_COLOR
 from config import SCREEN_SIZE, GRID_SIZE, CELL_SIZE, OFFSET
 from player import Player
 from team import Team
@@ -27,6 +28,8 @@ class Game:
         self.__marked_cases = []
         self.history = []
 
+        self.is_edit_mode = False
+
     def get_marked_cases(self):
         return self.__marked_cases
 
@@ -34,10 +37,10 @@ class Game:
         board = deepcopy(self.board)
 
         player1 = deepcopy(self.player1)
-        player1.clear_possible_moves()
+        player1.clear_possible_moves(self.board)
         player1.deselect_case()
         player2 = deepcopy(self.player2)
-        player2.clear_possible_moves()
+        player2.clear_possible_moves(self.board)
         player2.deselect_case()
 
         current_player = True if self.current_player == self.player1 else False
@@ -64,30 +67,37 @@ class Game:
         self.current_player = self.player1 if self.history[-1]["current_player"] == True else self.player2
         self.render()
 
-    def compute_eating_moves(self, playable_case: PlayableCase) -> list[tuple[int, int]]:
+    def compute_eating_moves(self, playable_case: PlayableCase) -> list[list[tuple[int, int]]]:
         all_paths = []
 
-        def loop(playable_case: PlayableCase, eating_path=None):
-            if eating_path is None:
-                eating_path = []
+        def loop(playable_case: PlayableCase, move_path=None, eaten_pieces=None):
+            if move_path is None:
+                move_path = []
+            if eaten_pieces is None:
+                eaten_pieces = []
 
             # Liste des coups possibles
             start_position = playable_case.get_coordinates()
             possible_moves = playable_case.get_piece().get_can_eat(self, start_position)
 
             if not possible_moves:  # Cas feuille
-                all_paths.append(eating_path)
-                return eating_path
+                if not move_path:
+                    return []
+                move = {"move_path": move_path, "eaten_pieces": eaten_pieces}
+                all_paths.append(move)
+                return move
 
             for next_position in possible_moves:  # Parcours des coups possibles
-                self.simulate_eat(start_position, next_position)
-                eating_path.append(next_position)
-                loop(self.board.get_case(next_position), copy(eating_path))
-                eating_path.pop()
+                eaten_piece = self.simulate_eat(start_position, next_position)
+                eaten_pieces.append(eaten_piece)
+                move_path.append(next_position)
+                loop(self.board.get_case(next_position), copy(move_path), copy(eaten_pieces))
+                move_path.pop()
+                eaten_pieces.pop()
                 self.simulate_move(next_position, start_position)
 
-            longueur_max = max(len(sous_liste) for sous_liste in all_paths)
-            return [sous_liste for sous_liste in all_paths if len(sous_liste) == longueur_max]
+            longueur_max = max(len(sous_liste["move_path"]) for sous_liste in all_paths)
+            return [sous_liste for sous_liste in all_paths if len(sous_liste["move_path"]) == longueur_max]
 
         best_path = loop(playable_case)
         self.__marked_cases.clear()
@@ -116,8 +126,9 @@ class Game:
         for case in cases_between:
             if case.contains_enemy_piece(self.current_player.get_team()):
                 # print(f"adding {case} to marked !")
-                self.__marked_cases += [case.get_coordinates()]
-                return
+                eaten_case = case.get_coordinates()
+                self.__marked_cases += [eaten_case]
+                return eaten_case
 
     def switch_current_player(self):
         """Switch the current player to the other player."""
@@ -128,10 +139,41 @@ class Game:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.running = False
-            elif event.type == pg.MOUSEBUTTONDOWN:
-                if event.button == 1:
+                return
+            if self.is_edit_mode:
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_TAB:
+                        self.is_edit_mode = False
+                        print("edit mode: False")
+                        return
+                    if event.key == pg.K_c:
+                        print("clear")
+                        for case in self.board.get_cases(lambda c: isinstance(c, PlayableCase)):
+                            case.set_piece(None)
+
+                        return
+
+                    from piece import Piece, Queen
                     x = mouse_x // (self.size + self.offset)
                     y = mouse_y // (self.size + self.offset)
+                    case = self.board.get_case((x, y))
+                    if isinstance(case, PlayableCase):
+                        piece = None
+                        if event.key == pg.K_q:
+                            piece = Piece(Team.WHITE)
+                        if event.key == pg.K_d:
+                            piece = Piece(Team.BLACK)
+                        if event.key == pg.K_z:
+                            piece = Queen(Team.WHITE)
+                        if event.key == pg.K_s:
+                            piece = Queen(Team.BLACK)
+                        case.set_piece(piece)
+                return
+
+            if event.type == pg.MOUSEBUTTONDOWN:
+                x = mouse_x // (self.size + self.offset)
+                y = mouse_y // (self.size + self.offset)
+                if event.button == 1:
 
                     has_played = self.current_player.on_click(self, (x, y))
                     print(f"({self.player1}) Clicked on {self.board.get_case((x, y))}")
@@ -139,11 +181,15 @@ class Game:
                         self.switch_current_player()
                         self.save_board_state()
                 else:
-                    x = mouse_x // (self.size + self.offset)
-                    y = mouse_y // (self.size + self.offset)
-                    print(self.compute_eating_moves(self.board.get_case((x, y))))
+                    case = self.board.get_case((x, y))
+                    if isinstance(case, PlayableCase):
+                        print(case.get_piece().get_valid_paths(self, (x, y)))
+                return
 
-            elif event.type == pg.KEYDOWN:
+            if event.type == pg.KEYDOWN:
+                if event.key == pg.K_TAB:
+                    self.is_edit_mode = True
+                    print(f"edit mode: {self.is_edit_mode}")
                 if event.key == pg.K_a:
                     import pyperclip
                     pyperclip.copy(str(self.board))
@@ -154,10 +200,11 @@ class Game:
                 elif event.key == pg.K_s:
                     print("Saving...")
                     self.save_board_state()
+                return
 
     def render(self):
         self.screen.fill("black")
-        self.board.draw(self.screen, self.size, self.offset)
+        self.draw()
         pg.display.flip()
 
     def run(self):
@@ -165,5 +212,40 @@ class Game:
         while self.running:
             self.handle_events()
             self.render()
-            self.clock.tick(24)
+            self.clock.tick(60)
         pg.quit()
+
+    def draw(self):
+        for row in self.board.get_board():
+            for case in row:
+                case.draw(self.screen, self.size, self.offset)
+
+        self.highlight_moves()
+
+    def highlight_moves(self):
+        """Met en évidence les cases accessibles."""
+
+        for path in self.current_player.get_possible_moves():
+            last_case = self.board.get_case(path[-1])
+            if isinstance(last_case, PlayableCase) and not last_case.get_piece():
+                last_case.set_can_land(True)
+
+                case = self.board.get_selected_case()
+                if case is None:
+                    return
+                self.draw_arrows(case.get_coordinates(), path[0])
+                for i in range(len(path) - 1):
+                    self.draw_arrows(path[i], path[i + 1])
+
+    def draw_arrows(self, start_coord, end_coord):
+        start_pos = add(mult(start_coord, (self.size + self.offset)), int(self.size // 2))
+        end_pos = add(mult(end_coord, (self.size + self.offset)), int(self.size // 2))
+        pg.draw.line(self.screen, ARROWS_COLOR, start_pos, end_pos, 3)
+
+
+def mult(t: tuple[int | float, ...], c: int | float):
+    return tuple(map(lambda x: x * c, t))
+
+
+def add(t: tuple[int | float, ...], c: int | float):
+    return tuple(map(lambda x: x + c, t))
