@@ -81,6 +81,12 @@ class Board:
             return None
         return self.__board[x, y]
 
+    def get_playable_case(self, coordinates: tuple[int, int]) -> PlayableCase | None:
+        case = self.get_case(coordinates)
+        if isinstance(case, PlayableCase):
+            return case
+        raise TypeError(f"{case} is not a playable case")
+
     def get_landing_cases(self):
         return self.get_cases(
             lambda c: isinstance(c, PlayableCase) and c.can_land())

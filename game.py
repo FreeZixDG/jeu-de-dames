@@ -105,20 +105,16 @@ class Game:
         return best_path
 
     def simulate_move(self, start_pos, end_pos):
-        start_case = self.board.get_case(start_pos)
-        end_case = self.board.get_case(end_pos)
-        assert isinstance(start_case, PlayableCase)
-        assert isinstance(end_case, PlayableCase)
+        start_case = self.board.get_playable_case(start_pos)
+        end_case = self.board.get_playable_case(end_pos)
 
         piece_to_move = start_case.get_piece()
         start_case.set_piece(None)
         end_case.set_piece(piece_to_move)
 
     def simulate_eat(self, start_pos, end_pos):
-        start_case = self.board.get_case(start_pos)
-        end_case = self.board.get_case(end_pos)
-        assert isinstance(start_case, PlayableCase)
-        assert isinstance(end_case, PlayableCase)
+        start_case = self.board.get_playable_case(start_pos)
+        end_case = self.board.get_playable_case(end_pos)
 
         self.simulate_move(start_pos, end_pos)
 
@@ -226,16 +222,15 @@ class Game:
         """Met en évidence les cases accessibles."""
 
         for path in self.current_player.get_possible_moves():
-            last_case = self.board.get_case(path[-1])
-            if isinstance(last_case, PlayableCase) and not last_case.get_piece():
-                last_case.set_can_land(True)
+            last_case = self.board.get_playable_case(path[-1])
+            last_case.set_can_land(True)
 
-                case = self.board.get_selected_case()
-                if case is None:
-                    return
-                self.draw_arrows(case.get_coordinates(), path[0])
-                for i in range(len(path) - 1):
-                    self.draw_arrows(path[i], path[i + 1])
+            case = self.board.get_selected_case()
+            if case is None:
+                return
+            self.draw_arrows(case.get_coordinates(), path[0])
+            for i in range(len(path) - 1):
+                self.draw_arrows(path[i], path[i + 1])
 
     def draw_arrows(self, start_coord, end_coord):
         start_pos = add(mult(start_coord, (self.size + self.offset)), int(self.size // 2))

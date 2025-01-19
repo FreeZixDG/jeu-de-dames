@@ -39,8 +39,21 @@ class Player:
         has_played = False
 
         case = game.board.get_case(coordinates)
+        if not isinstance(case, PlayableCase):
+            pass
 
-        if self.__contains_self_piece(case):
+        elif case.can_land():
+            has_played = True
+            for move in self.__move_paths:
+                if move["move_path"][-1] == case.get_coordinates():
+                    self.__move_piece(game.board.get_case(move["move_path"][-1]))
+                    for coord in move["eaten_pieces"]:
+                        case = game.board.get_case(coord)
+                        piece = case.get_piece()
+                        case.set_piece(None)
+                        self.__eaten_pieces += [piece]
+
+        elif self.__contains_self_piece(case):
             self.deselect_case()
             self.clear_possible_moves(game.board)
             self.__selected_case = case
@@ -52,22 +65,9 @@ class Player:
             self.add_possible_move([move["move_path"] for move in self.__move_paths])
             return has_played
 
-        elif isinstance(case, PlayableCase) and case.can_land():
-            has_played = True
-            for move in self.__move_paths:
-                if move["move_path"][-1] == case.get_coordinates():
-                    self.__move_piece(game.board.get_case(move["move_path"][-1]))
-                    for coord in move["eaten_pieces"]:
-                        case = game.board.get_case(coord)
-                        piece = case.get_piece()
-                        case.set_piece(None)
-                        self.__eaten_pieces += [piece]
-
         self.deselect_case()
         self.clear_possible_moves(game.board)
         return has_played
-
-
 
     def deselect_case(self):
         if self.__selected_case is not None:
@@ -80,21 +80,18 @@ class Player:
     def clear_possible_moves(self, board: Board):
         for move in self.__possible_moves:
             for coord in move:
-                case = board.get_case(coord)
-                if isinstance(case, PlayableCase):
-                    case.set_can_land(False)
+                case = board.get_playable_case(coord)
+                case.set_can_land(False)
         self.__possible_moves.clear()
 
-    def __contains_self_piece(self, case: Case):
-        return isinstance(case, PlayableCase) \
-            and case.get_piece() is not None \
+    def __contains_self_piece(self, case: PlayableCase):
+        return case.get_piece() is not None \
             and case.get_piece().get_team() == self.__team
 
     def __move_piece(self, case: PlayableCase):
         piece = self.__selected_case.get_piece()
-
-        case.set_piece(piece)
         self.__selected_case.set_piece(None)
+        case.set_piece(piece)
         case.try_promotion()
 
     def __repr__(self):
