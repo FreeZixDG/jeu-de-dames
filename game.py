@@ -131,6 +131,25 @@ class Game:
         """Switch the current player to the other player."""
         self.current_player = self.player1 if self.current_player == self.player2 else self.player2
 
+    def find_cases_who_can_play(self):
+        # liste toutes les cases et leurs moves possibles
+        cases_data = []
+        for case in self.board.get_cases(
+                lambda c: isinstance(c, PlayableCase) and c.contains_piece_of_team(self.current_player.get_team())):
+            cases_data.append((case, self.compute_eating_moves(case)))
+
+        cases_with_totals = [
+            (case_info[0], len(case_info[1][0]["eaten_pieces"]) if case_info[1] else 0)
+            for case_info in cases_data
+        ]
+
+        max_eaten = max(total for _, total in cases_with_totals)
+
+        return [case for case, total in cases_with_totals if total == max_eaten]
+
+    def highlight_cases_who_can_play(self):
+        pass
+
     def handle_events(self):
         mouse_x, mouse_y = pg.mouse.get_pos()
         for event in pg.event.get():
@@ -178,9 +197,7 @@ class Game:
                         self.switch_current_player()
                         self.save_board_state()
                 else:
-                    case = self.board.get_case((x, y))
-                    if isinstance(case, PlayableCase):
-                        print(case.get_piece().get_valid_paths(self, (x, y)))
+                    print(self.find_cases_who_can_play())
                 return
 
             if event.type == pg.KEYDOWN:

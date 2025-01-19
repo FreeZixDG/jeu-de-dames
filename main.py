@@ -1,5 +1,5 @@
 from game import Game
 if __name__ == "__main__":
-    board = "11.2b8.2b4.w22."
+    board = "11.3b.w3.W2.b4.w2.b2.b4.w.b5.w3."
     game = Game(board)
     game.run()

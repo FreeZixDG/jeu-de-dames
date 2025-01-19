@@ -43,7 +43,7 @@ class Piece:
 
         return result
 
-    def get_can_eat(self, game: Game, current_position: tuple[int, int]) -> list[tuple[int, int]]:
+    def get_can_eat(self, game: Game, current_position: tuple[int, int]) -> list[dict[list[tuple[int, int]]]]:
         result = []
         result += self.get_can_eat_for_diagonal(game, current_position, (1, 1))
         result += self.get_can_eat_for_diagonal(game, current_position, (1, -1))
@@ -52,7 +52,7 @@ class Piece:
         return result
 
     def get_valid_moves_for_diagonal(self, game: Game, current_position: tuple[int, int],
-                                     diagonal: tuple[int, int]) -> list[list[tuple[int, int]]]:
+                                     diagonal: tuple[int, int]) -> list[dict[list[tuple[int, int]]]]:
         result = []
         dir_x, dir_y = diagonal
         x, y = current_position
