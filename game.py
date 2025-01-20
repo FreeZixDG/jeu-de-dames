@@ -30,6 +30,7 @@ class Game:
 
         self.is_edit_mode = False
         self.cases_who_can_play = []
+        self.winner = None
 
     def get_marked_cases(self):
         return self.__marked_cases
@@ -45,11 +46,14 @@ class Game:
         player2.deselect_case()
 
         current_player = True if self.current_player == self.player1 else False
+
+        cases_who_can_play = deepcopy(self.cases_who_can_play)
         state = {
             "board": board,
             "player1": player1,
             "player2": player2,
             "current_player": current_player,
+            "cases_who_can_play": cases_who_can_play,
         }
         self.history.append(state)
         # print("state saved!")
@@ -66,6 +70,7 @@ class Game:
         self.player1 = deepcopy(self.history[-1]["player1"])
         self.player2 = deepcopy(self.history[-1]["player2"])
         self.current_player = self.player1 if self.history[-1]["current_player"] == True else self.player2
+        self.cases_who_can_play = self.history[-1]["cases_who_can_play"]
         self.render()
 
     def compute_eating_moves(self, playable_case: PlayableCase) -> list[list[tuple[int, int]]]:
@@ -132,25 +137,35 @@ class Game:
         """Switch the current player to the other player."""
         self.current_player = self.player1 if self.current_player == self.player2 else self.player2
 
-    def find_cases_who_can_play(self) -> list[PlayableCase]:
+    def find_cases_who_can_play(self):
         if self.cases_who_can_play:
             return []
         # liste toutes les cases et leurs moves possibles
         cases_data = []
         for case in self.board.get_cases(
                 lambda c: isinstance(c, PlayableCase) and c.contains_piece_of_team(self.current_player.get_team())):
-            cases_data.append((case, self.compute_eating_moves(case)))
+            cases_data.append((case, case.get_piece().get_valid_paths(self, case.get_coordinates())))
 
         cases_with_totals = [
             (case_info[0], len(case_info[1][0]["eaten_pieces"]) if case_info[1] else 0)
             for case_info in cases_data
         ]
 
-        max_eaten = max(total for _, total in cases_with_totals)
-
-        result = [case for case, total in cases_with_totals if total == max_eaten]
-        if not result:
+        if not cases_with_totals:
+            self.declare_winner(self.player1 if self.current_player == self.player2 else self.player2)
             return []
+
+        max_move = max(total for _, total in cases_with_totals)
+        if max_move == 0:
+            cases_with_totals = [
+                (case_info[0], len(case_info[1][0]["move_path"]) if case_info[1] else 0)
+                for case_info in cases_data
+            ]
+            max_move = max(total for _, total in cases_with_totals)
+            if max_move == 0:
+                self.declare_winner(self.player1 if self.current_player == self.player2 else self.player2)
+                return []
+        result = [case for case, total in cases_with_totals if total == max_move]
         self.cases_who_can_play = result
         return self.cases_who_can_play
 
@@ -218,6 +233,7 @@ class Game:
                 if event.key == pg.K_TAB:
                     self.is_edit_mode = True
                     print(f"edit mode: {self.is_edit_mode}")
+                    self.clear_cases_who_can_play()
                 if event.key == pg.K_a:
                     import pyperclip
                     pyperclip.copy(str(self.board))
@@ -238,6 +254,8 @@ class Game:
     def run(self):
         self.save_board_state()
         while self.running:
+            if self.winner:
+                self.end()
             self.handle_events()
             self.render()
             self.clock.tick(60)
@@ -269,6 +287,17 @@ class Game:
         start_pos = add(mult(start_coord, (self.size + self.offset)), int(self.size // 2))
         end_pos = add(mult(end_coord, (self.size + self.offset)), int(self.size // 2))
         pg.draw.line(self.screen, ARROWS_COLOR, start_pos, end_pos, 3)
+
+    def declare_winner(self, param):
+        self.winner = param
+        self.winner.win(True)
+        self.current_player.win(False)
+        self.end()
+
+    def end(self):
+        game_font = pg.font.SysFont("Arial", 50)
+        text = game_font.render(f"{self.winner.get_team().value}s won !", 1, (0, 0, 0))
+        self.screen.blit(text, (int(SCREEN_SIZE[0] // 4), int(SCREEN_SIZE[1] // 4)))
 
 
 def mult(t: tuple[int | float, ...], c: int | float):

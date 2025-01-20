@@ -34,13 +34,18 @@ class Piece:
         if result:
             return result
 
+        result += self.get_can_move(game, current_position)
+
+        return result
+
+    def get_can_move(self, game: Game, current_position: tuple[int, int]) -> bool:
+        result = []
         if self._team is Team.WHITE:
             result += self.get_valid_moves_for_diagonal(game, current_position, (-1, -1))
             result += self.get_valid_moves_for_diagonal(game, current_position, (1, -1))
         else:
             result += self.get_valid_moves_for_diagonal(game, current_position, (-1, 1))
             result += self.get_valid_moves_for_diagonal(game, current_position, (1, 1))
-
         return result
 
     def get_can_eat(self, game: Game, current_position: tuple[int, int]) -> list[dict[list[tuple[int, int]]]]:

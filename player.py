@@ -17,6 +17,7 @@ class Player:
         self.__id = player_id
         self.__name = name
         self.__team = team
+        self.__points = 0
         self.__eaten_pieces = []
         self.__selected_case: OptionalPlayableCase = None
         self.__possible_moves: list[PlayableCase] = []
@@ -92,6 +93,12 @@ class Player:
         self.__selected_case.set_piece(None)
         case.set_piece(piece)
         case.try_promotion()
+
+    def win(self, win):
+        if win:
+            self.__points += 1
+        else:
+            self.__points -= 1
 
     def __repr__(self):
         return f"{self.__name} ({self.__team.value}) {self.__eaten_pieces}"
