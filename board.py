@@ -25,7 +25,11 @@ def factorize_string(string: str) -> str:
 
 
 class Board:
-    def __init__(self, size: int, init: str = "20b10.20w"):
+    def __init__(self, size: int, init: str = None):
+        if init is None:
+            pions = ((size ** 2) // 2 - size) // 2
+            init = f"{pions}b{size}.{pions}w"
+            print(init)
         self.__size = size
         self.__board = np.zeros((size, size), dtype=Case)
 
