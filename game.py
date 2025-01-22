@@ -1,5 +1,4 @@
-import copy
-from copy import deepcopy, copy
+from copy import deepcopy
 
 import pygame as pg
 
@@ -9,6 +8,14 @@ from colors_constants import ARROWS_COLOR
 from config import SCREEN_SIZE, GRID_SIZE, CELL_SIZE, OFFSET
 from player import Player
 from team import Team
+
+
+def sign(a, b):
+    last_dir_x = (a[0] - b[0])
+    last_dir_y = (a[1] - b[1])
+    last_dir_x //= abs(last_dir_x)
+    last_dir_y //= abs(last_dir_y)
+    return last_dir_x, last_dir_y
 
 
 class Game:
@@ -25,15 +32,11 @@ class Game:
         self.size = CELL_SIZE
         self.offset = OFFSET
 
-        self.__marked_cases = []
         self.history = []
 
         self.is_edit_mode = False
         self.cases_who_can_play = []
         self.winner = None
-
-    def get_marked_cases(self):
-        return self.__marked_cases
 
     def save_board_state(self):
         board = deepcopy(self.board)
@@ -76,39 +79,72 @@ class Game:
     def compute_eating_moves(self, playable_case: PlayableCase) -> list[list[tuple[int, int]]]:
         all_paths = []
 
-        def loop(playable_case: PlayableCase, move_path=None, eaten_pieces=None):
-            if move_path is None:
-                move_path = []
-            if eaten_pieces is None:
-                eaten_pieces = []
+        def explore_moves(current_case, path, eaten_pieces, visited_diagonals):
+            # Récupère les coordonnées actuelles
+            current_pos = current_case.get_coordinates()
 
-            # Liste des coups possibles
-            start_position = playable_case.get_coordinates()
-            possible_moves = playable_case.get_piece().get_can_eat(self, start_position)
+            # Cherche les mouvements possibles
+            possible_moves = current_case.get_piece().get_can_eat(self, current_pos, eaten_pieces)
 
-            if not possible_moves:  # Cas feuille
-                if not move_path:
-                    return []
-                move = {"move_path": move_path, "eaten_pieces": eaten_pieces}
-                all_paths.append(move)
-                return move
+            # Si aucun mouvement n'est possible, ajoute le chemin actuel à la liste
+            if not possible_moves:
+                all_paths.append({"move_path": path, "eaten_pieces": eaten_pieces})
+                return
 
-            for next_position in possible_moves:  # Parcours des coups possibles
-                eaten_piece = self.simulate_eat(start_position, next_position)
-                eaten_pieces.append(eaten_piece)
-                move_path.append(next_position)
-                loop(self.board.get_case(next_position), copy(move_path), copy(eaten_pieces))
-                move_path.pop()
-                eaten_pieces.pop()
-                self.simulate_move(next_position, start_position)
+            # Parcourt les diagonales possibles
+            for diagonal in possible_moves:
+                # Vérifie si cette diagonale a déjà été explorée pour ce point de départ
+                direction = sign(current_pos, diagonal[0])
+                if (diagonal, direction) in visited_diagonals:
+                    continue
 
-            longueur_max = max(len(sous_liste["move_path"]) for sous_liste in all_paths)
-            return [sous_liste for sous_liste in all_paths if len(sous_liste["move_path"]) == longueur_max]
+                visited_diagonals.append((diagonal, direction))  # Marque la diagonale comme visitée
 
-        best_path = loop(playable_case)
-        self.__marked_cases.clear()
+                for next_pos in diagonal:
+                    dead_end = True
+                    # Simule la capture
+                    eaten_piece = self.simulate_eat(current_pos, next_pos)
+                    # self.render()
+                    # sleep(0.2)
+                    next_case = self.board.get_playable_case(next_pos)
 
-        return best_path
+                    # Si une autre capture est possible, explore cette position
+                    if next_case.get_piece().get_can_eat(self, next_pos, eaten_pieces + [eaten_piece]):
+                        dead_end = False
+                        explore_moves(
+                            next_case,
+                            path + [next_pos],
+                            eaten_pieces + [eaten_piece],
+                            visited_diagonals,
+                        )
+
+                    # Si c'est une extrémité ou aucune autre capture n'est possible, termine ici
+                    elif next_pos == diagonal[-1]:
+                        # Si toutes les case de la diagonale étaient des culs-de-sac
+                        if dead_end:
+                            for x in diagonal:
+                                all_paths.append(
+                                    {"move_path": path + [x], "eaten_pieces": eaten_pieces + [eaten_piece]})
+                        else:
+                            all_paths.append(
+                                {"move_path": path + [next_pos], "eaten_pieces": eaten_pieces + [eaten_piece]})
+
+                    # Rétablit l'état initial après la simulation
+                    self.simulate_move(next_pos, current_pos)
+                    # self.render()
+                    # sleep(0.4)
+
+        # Lance l'exploration depuis la case de départ
+        explore_moves(playable_case, [], [], [])
+
+        # Trouve les chemins maximaux
+        max_length = max(len(path["move_path"]) for path in all_paths) if all_paths else 0
+        if max_length == 0: return []
+        best_paths = [path for path in all_paths if len(path["move_path"]) == max_length]
+        # if len(best_paths) > 1: return [best_paths[1]]
+
+        print(best_paths)
+        return best_paths
 
     def simulate_move(self, start_pos, end_pos):
         start_case = self.board.get_playable_case(start_pos)
@@ -130,7 +166,6 @@ class Game:
             if case.contains_piece_of_team(opposite_team):
                 # print(f"adding {case} to marked !")
                 eaten_case = case.get_coordinates()
-                self.__marked_cases += [eaten_case]
                 return eaten_case
 
     def switch_current_player(self):
@@ -226,7 +261,7 @@ class Game:
                         self.switch_current_player()
                         self.save_board_state()
                 else:
-                    print(self.find_cases_who_can_play())
+                    self.compute_eating_moves(self.board.get_playable_case((x, y)))
                 return
 
             if event.type == pg.KEYDOWN:
@@ -267,6 +302,7 @@ class Game:
                 case.draw(self.screen, self.size, self.offset)
 
         self.highlight_moves()
+        # self.highlight_cases_who_can_play()
         self.highlight_cases_who_can_play()
 
     def highlight_moves(self):

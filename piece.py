@@ -38,7 +38,7 @@ class Piece:
 
         return result
 
-    def get_can_move(self, game: Game, current_position: tuple[int, int]) -> bool:
+    def get_can_move(self, game: Game, current_position: tuple[int, int]):
         result = []
         if self._team is Team.WHITE:
             result += self.get_valid_moves_for_diagonal(game, current_position, (-1, -1))
@@ -48,12 +48,17 @@ class Piece:
             result += self.get_valid_moves_for_diagonal(game, current_position, (1, 1))
         return result
 
-    def get_can_eat(self, game: Game, current_position: tuple[int, int]) -> list[dict[list[tuple[int, int]]]]:
+    def get_can_eat(self, game: Game, current_position: tuple[int, int], eaten_pieces, ignore=None) -> list[
+        list[tuple[int, int]]]:
         result = []
-        result += self.get_can_eat_for_diagonal(game, current_position, (1, 1))
-        result += self.get_can_eat_for_diagonal(game, current_position, (1, -1))
-        result += self.get_can_eat_for_diagonal(game, current_position, (-1, -1))
-        result += self.get_can_eat_for_diagonal(game, current_position, (-1, 1))
+        diagonals = [(1, -1), (1, 1), (-1, 1), (-1, -1)]
+        if ignore is not None:
+            diagonals = [x for x in diagonals if x not in ignore]
+
+        for diagonal in diagonals:
+            moves = self.get_can_eat_for_diagonal(game, current_position, diagonal, eaten_pieces)
+            if moves:
+                result += [moves]
         return result
 
     def get_valid_moves_for_diagonal(self, game: Game, current_position: tuple[int, int],
@@ -76,14 +81,14 @@ class Piece:
         return result
 
     def get_can_eat_for_diagonal(self, game: Game, current_position: tuple[int, int],
-                                 diagonal: tuple[int, int]) -> list[tuple[int, int]]:
+                                 diagonal: tuple[int, int], eaten_pieces) -> list[tuple[int, int]]:
         dir_x, dir_y = diagonal
         x, y = current_position
         x, y = x + 1 * dir_x, y + 1 * dir_y
         case = game.board.get_case((x, y))
         if not game.board.is_valid_move((x, y)):
             return []
-        if (x, y) in game.get_marked_cases():
+        if (x, y) in eaten_pieces:
             return []
         if isinstance(case, PlayableCase):
             if case.get_piece() is None:
@@ -125,9 +130,10 @@ class Queen(Piece):
         return result
 
     def get_can_eat_for_diagonal(self, game: Game, current_position: tuple[int, int],
-                                 diagonal: tuple[int, int]) -> list[tuple[int, int]]:
+                                 diagonal: tuple[int, int], eaten_pieces) -> list[tuple[int, int]]:
         dir_x, dir_y = diagonal
         x, y = current_position
+
         result = []
         has_met_opponent = False
         for i in range(1, GRID_SIZE):
@@ -135,7 +141,7 @@ class Queen(Piece):
             case = game.board.get_case((x, y))
             if not game.board.is_valid_move((x, y)):
                 break
-            if (x, y) in game.get_marked_cases():
+            if (x, y) in eaten_pieces:
                 break
             if isinstance(case, PlayableCase):
                 if case.get_piece() is None:
