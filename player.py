@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import time
 from typing import TYPE_CHECKING, Optional
 
 from case import Case, PlayableCase
+from strategy import Strategy
 from team import Team
 
 if TYPE_CHECKING:
@@ -19,7 +21,7 @@ class Player:
         self.__team = team
         self.__points = 0
         self.__eaten_pieces = []
-        self.__selected_case: OptionalPlayableCase = None
+        self.__last_selected_case: OptionalPlayableCase = None
         self.__possible_moves: list[PlayableCase] = []
 
         self.__move_paths = []
@@ -40,13 +42,14 @@ class Player:
         has_played = False
 
         case = game.board.get_case(coordinates)
+
         if not isinstance(case, PlayableCase):
             pass
 
         elif case.can_land():
-            if self.__selected_case.get_can_play():
+            if self.__last_selected_case.get_can_play():
                 has_played = True
-                print("clearing")
+                print("clearing !")
                 game.clear_cases_who_can_play()
                 for move in self.__move_paths:
                     if move["move_path"][-1] == case.get_coordinates():
@@ -60,8 +63,8 @@ class Player:
         elif case.contains_piece_of_team(self.get_team()) and case.get_can_play():
             self.deselect_case()
             self.clear_possible_moves(game.board)
-            self.__selected_case = case
-            self.__selected_case.set_selected(True)
+            self.__last_selected_case = case
+            self.__last_selected_case.set_selected(True)
 
             piece = case.get_piece()
             moves = piece.get_valid_paths(game, case.get_coordinates())
@@ -74,9 +77,9 @@ class Player:
         return has_played
 
     def deselect_case(self):
-        if self.__selected_case is not None:
-            self.__selected_case.set_selected(False)
-            self.__selected_case = None
+        if self.__last_selected_case is not None:
+            self.__last_selected_case.set_selected(False)
+            self.__last_selected_case = None
 
     def add_possible_move(self, case: Case):
         self.__possible_moves += case
@@ -89,8 +92,8 @@ class Player:
         self.__possible_moves.clear()
 
     def __move_piece(self, case: PlayableCase):
-        piece = self.__selected_case.get_piece()
-        self.__selected_case.set_piece(None)
+        piece = self.__last_selected_case.get_piece()
+        self.__last_selected_case.set_piece(None)
         case.set_piece(piece)
         case.try_promotion()
 
@@ -102,3 +105,21 @@ class Player:
 
     def __repr__(self):
         return f"{self.__name} ({self.__team.value}) {self.__eaten_pieces}"
+
+
+class AI(Player):
+    def __init__(self, player_id, name, team: Team, strategy: Strategy):
+        super().__init__(player_id, name, team)
+        self.strategy = strategy
+
+    def play(self, game: Game):
+        self.strategy.update(game)
+        start, end = self.strategy.choose_move(game)
+        game.render()
+        time.sleep(2)
+        self.on_click(game, start)
+        game.render()
+        self.on_click(game, end)
+        game.render()
+        print(f"AI plays {start} -> {end}")
+        return True

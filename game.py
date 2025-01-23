@@ -5,8 +5,9 @@ import pygame as pg
 from board import Board
 from case import PlayableCase
 from colors_constants import ARROWS_COLOR
-from config import SCREEN_SIZE, GRID_SIZE, CELL_SIZE, OFFSET
-from player import Player
+from config import SCREEN_SIZE, GRID_SIZE, CELL_SIZE, OFFSET, LINES_INDICATOR_WIDTH
+from player import Player, AI
+from strategy import RandomStrategy
 from team import Team
 
 
@@ -25,18 +26,18 @@ class Game:
         self.clock = pg.time.Clock()
         self.running = True
         self.board = Board(GRID_SIZE, init_board) if init_board else Board(GRID_SIZE)
-        self.player1 = Player(0, player1, Team.WHITE)
-        self.player2 = Player(1, player2, Team.BLACK)
 
-        self.current_player = self.player1
         self.size = CELL_SIZE
         self.offset = OFFSET
 
         self.history = []
 
         self.is_edit_mode = False
-        self.cases_who_can_play = []
+        self._cases_who_can_play = []
         self.winner = None
+        self.player1 = Player(0, player1, Team.WHITE)
+        self.player2 = AI(1, player2, Team.BLACK, RandomStrategy())
+        self.current_player = self.player1
 
     def save_board_state(self):
         board = deepcopy(self.board)
@@ -50,7 +51,7 @@ class Game:
 
         current_player = True if self.current_player == self.player1 else False
 
-        cases_who_can_play = deepcopy(self.cases_who_can_play)
+        cases_who_can_play = deepcopy(self._cases_who_can_play)
         state = {
             "board": board,
             "player1": player1,
@@ -73,7 +74,7 @@ class Game:
         self.player1 = deepcopy(self.history[-1]["player1"])
         self.player2 = deepcopy(self.history[-1]["player2"])
         self.current_player = self.player1 if self.history[-1]["current_player"] == True else self.player2
-        self.cases_who_can_play = self.history[-1]["cases_who_can_play"]
+        self._cases_who_can_play = self.history[-1]["cases_who_can_play"]
         self.render()
 
     def compute_eating_moves(self, playable_case: PlayableCase) -> list[list[tuple[int, int]]]:
@@ -141,7 +142,7 @@ class Game:
         max_length = max(len(path["move_path"]) for path in all_paths) if all_paths else 0
         if max_length == 0: return []
         best_paths = [path for path in all_paths if len(path["move_path"]) == max_length]
-        # if len(best_paths) > 1: return [best_paths[1]]
+        # if len(best_paths) > 1: return [best_paths[0]]
 
         print(best_paths)
         return best_paths
@@ -172,8 +173,11 @@ class Game:
         """Switch the current player to the other player."""
         self.current_player = self.player1 if self.current_player == self.player2 else self.player2
 
+    def get_cases_who_can_play(self):
+        return self._cases_who_can_play
+
     def find_cases_who_can_play(self):
-        if self.cases_who_can_play:
+        if self._cases_who_can_play:
             return []
         # liste toutes les cases et leurs moves possibles
         cases_data = []
@@ -201,8 +205,8 @@ class Game:
                 self.declare_winner(self.player1 if self.current_player == self.player2 else self.player2)
                 return []
         result = [case for case, total in cases_with_totals if total == max_move]
-        self.cases_who_can_play = result
-        return self.cases_who_can_play
+        self._cases_who_can_play = result
+        return self._cases_who_can_play
 
     def highlight_cases_who_can_play(self):
         case_who_can_play = self.find_cases_who_can_play()
@@ -210,9 +214,9 @@ class Game:
             case.set_can_play(True)
 
     def clear_cases_who_can_play(self):
-        for case in self.cases_who_can_play:
+        for case in self._cases_who_can_play:
             case.set_can_play(False)
-        self.cases_who_can_play.clear()
+        self._cases_who_can_play.clear()
 
     def handle_events(self):
         mouse_x, mouse_y = pg.mouse.get_pos()
@@ -254,7 +258,6 @@ class Game:
                 x = mouse_x // (self.size + self.offset)
                 y = mouse_y // (self.size + self.offset)
                 if event.button == 1:
-
                     has_played = self.current_player.on_click(self, (x, y))
                     print(f"({self.player1}) Clicked on {self.board.get_case((x, y))}")
                     if has_played:
@@ -293,6 +296,10 @@ class Game:
                 self.end()
             self.handle_events()
             self.render()
+            if isinstance(self.current_player, AI):
+                self.current_player.play(self)
+                self.switch_current_player()
+                self.save_board_state()
             self.clock.tick(60)
         pg.quit()
 
@@ -302,7 +309,6 @@ class Game:
                 case.draw(self.screen, self.size, self.offset)
 
         self.highlight_moves()
-        # self.highlight_cases_who_can_play()
         self.highlight_cases_who_can_play()
 
     def highlight_moves(self):
@@ -322,7 +328,7 @@ class Game:
     def draw_arrows(self, start_coord, end_coord):
         start_pos = add(mult(start_coord, (self.size + self.offset)), int(self.size // 2))
         end_pos = add(mult(end_coord, (self.size + self.offset)), int(self.size // 2))
-        pg.draw.line(self.screen, ARROWS_COLOR, start_pos, end_pos, 3)
+        pg.draw.line(self.screen, ARROWS_COLOR, start_pos, end_pos, LINES_INDICATOR_WIDTH)
 
     def declare_winner(self, param):
         self.winner = param
