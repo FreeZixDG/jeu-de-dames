@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import time
+from copy import deepcopy
 from typing import TYPE_CHECKING, Optional
 
 from case import Case, PlayableCase
@@ -8,8 +9,8 @@ from strategy import Strategy
 from team import Team
 
 if TYPE_CHECKING:
-    from game import Game
     from board import Board
+    from game import Game
 
 OptionalPlayableCase = Optional[PlayableCase]
 
@@ -38,42 +39,41 @@ class Player:
     def get_possible_moves(self):
         return self.__possible_moves
 
-    def on_click(self, game: Game, coordinates: tuple[int, int]) -> bool:
+    def on_click(self, board: Board, coordinates: tuple[int, int]) -> bool:
         has_played = False
 
-        case = game.board.get_case(coordinates)
+        case = board.get_case(coordinates)
 
-        if not isinstance(case, PlayableCase):
-            pass
+        if isinstance(case, PlayableCase):
 
-        elif case.can_land():
-            if self.__last_selected_case.get_can_play():
-                has_played = True
-                print("clearing !")
-                game.clear_cases_who_can_play()
-                for move in self.__move_paths:
-                    if move["move_path"][-1] == case.get_coordinates():
-                        self.__move_piece(game.board.get_case(move["move_path"][-1]))
-                        for coord in move["eaten_pieces"]:
-                            case = game.board.get_case(coord)
-                            piece = case.get_piece()
-                            case.set_piece(None)
-                            self.__eaten_pieces += [piece]
+            if case.can_land():
+                if self.__last_selected_case.get_can_play():
+                    has_played = True
+                    print("clearing !")
+                    board.clear_cases_who_can_play()
+                    for move in self.__move_paths:
+                        if move["move_path"][-1] == case.get_coordinates():
+                            self.__move_piece(board.get_case(move["move_path"][-1]))
+                            for coord in move["eaten_pieces"]:
+                                case = board.get_playable_case(coord)
+                                piece = case.get_piece()
+                                case.set_piece(None)
+                                self.__eaten_pieces += [piece]
 
-        elif case.contains_piece_of_team(self.get_team()) and case.get_can_play():
-            self.deselect_case()
-            self.clear_possible_moves(game.board)
-            self.__last_selected_case = case
-            self.__last_selected_case.set_selected(True)
+            elif case.contains_piece_of_team(self.get_team()) and case.get_can_play():
+                self.deselect_case()
+                self.clear_possible_moves(board)
+                self.__last_selected_case = case
+                self.__last_selected_case.set_selected(True)
 
-            piece = case.get_piece()
-            moves = piece.get_valid_paths(game, case.get_coordinates())
-            self.__move_paths = moves
-            self.add_possible_move([move["move_path"] for move in self.__move_paths])
-            return has_played
+                piece = case.get_piece()
+                moves = piece.get_valid_paths(board, case.get_coordinates())
+                self.__move_paths = moves
+                self.add_possible_move([move["move_path"] for move in self.__move_paths])
+                return has_played
 
         self.deselect_case()
-        self.clear_possible_moves(game.board)
+        self.clear_possible_moves(board)
         return has_played
 
     def deselect_case(self):
@@ -113,12 +113,12 @@ class AI(Player):
         self.strategy = strategy
 
     def play(self, game: Game):
-        self.strategy.update(game)
-        start, end = self.strategy.choose_move(game)
+        self.strategy.update(game.board)
+        start, end = self.strategy.choose_move(deepcopy(game.board))
         game.render()
         time.sleep(1)
-        self.on_click(game, start)
+        self.on_click(game.board, start)
         game.draw()
-        self.on_click(game, end)
+        self.on_click(game.board, end)
         print(f"AI plays {start} -> {end}")
         return True

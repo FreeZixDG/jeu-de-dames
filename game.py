@@ -11,14 +11,6 @@ from strategy import RandomStrategy
 from team import Team
 
 
-def sign(a, b):
-    last_dir_x = (a[0] - b[0])
-    last_dir_y = (a[1] - b[1])
-    last_dir_x //= abs(last_dir_x)
-    last_dir_y //= abs(last_dir_y)
-    return last_dir_x, last_dir_y
-
-
 class Game:
     def __init__(self, init_board: str = None, player1: str = "Player1", player2: str = "Player 2"):
         pg.init()
@@ -33,7 +25,7 @@ class Game:
         self.history = []
 
         self.is_edit_mode = False
-        self._cases_who_can_play = []
+
         self.winner = None
         self.player1 = Player(0, player1, Team.WHITE)
         self.player2 = AI(1, player2, Team.BLACK, RandomStrategy())
@@ -51,13 +43,11 @@ class Game:
 
         current_player = True if self.current_player == self.player1 else False
 
-        cases_who_can_play = deepcopy(self._cases_who_can_play)
         state = {
             "board": board,
             "player1": player1,
             "player2": player2,
             "current_player": current_player,
-            "cases_who_can_play": cases_who_can_play,
         }
         self.history.append(state)
         # print("state saved!")
@@ -74,116 +64,26 @@ class Game:
         self.player1 = deepcopy(self.history[-1]["player1"])
         self.player2 = deepcopy(self.history[-1]["player2"])
         self.current_player = self.player1 if self.history[-1]["current_player"] == True else self.player2
-        self._cases_who_can_play = self.history[-1]["cases_who_can_play"]
         self.render()
 
-    def compute_eating_moves(self, playable_case: PlayableCase) -> list[list[tuple[int, int]]]:
-        all_paths = []
 
-        def explore_moves(current_case, path, eaten_pieces, visited_diagonals):
-            # Récupère les coordonnées actuelles
-            current_pos = current_case.get_coordinates()
 
-            # Cherche les mouvements possibles
-            possible_moves = current_case.get_piece().get_can_eat(self, current_pos, eaten_pieces)
 
-            # Si aucun mouvement n'est possible, ajoute le chemin actuel à la liste
-            if not possible_moves:
-                all_paths.append({"move_path": path, "eaten_pieces": eaten_pieces})
-                return
-
-            # Parcourt les diagonales possibles
-            for diagonal in possible_moves:
-                # Vérifie si cette diagonale a déjà été explorée pour ce point de départ
-                direction = sign(current_pos, diagonal[0])
-                if (diagonal, direction) in visited_diagonals:
-                    continue
-
-                visited_diagonals.append((diagonal, direction))  # Marque la diagonale comme visitée
-
-                for next_pos in diagonal:
-                    dead_end = True
-                    # Simule la capture
-                    eaten_piece = self.simulate_eat(current_pos, next_pos)
-                    # self.render()
-                    # sleep(0.2)
-                    next_case = self.board.get_playable_case(next_pos)
-
-                    # Si une autre capture est possible, explore cette position
-                    if next_case.get_piece().get_can_eat(self, next_pos, eaten_pieces + [eaten_piece]):
-                        dead_end = False
-                        explore_moves(
-                            next_case,
-                            path + [next_pos],
-                            eaten_pieces + [eaten_piece],
-                            visited_diagonals,
-                        )
-
-                    # Si c'est une extrémité ou aucune autre capture n'est possible, termine ici
-                    elif next_pos == diagonal[-1]:
-                        # Si toutes les case de la diagonale étaient des culs-de-sac
-                        if dead_end:
-                            for x in diagonal:
-                                all_paths.append(
-                                    {"move_path": path + [x], "eaten_pieces": eaten_pieces + [eaten_piece]})
-                        else:
-                            all_paths.append(
-                                {"move_path": path + [next_pos], "eaten_pieces": eaten_pieces + [eaten_piece]})
-
-                    # Rétablit l'état initial après la simulation
-                    self.simulate_move(next_pos, current_pos)
-                    # self.render()
-                    # sleep(0.4)
-
-        # Lance l'exploration depuis la case de départ
-        explore_moves(playable_case, [], [], [])
-
-        # Trouve les chemins maximaux
-        max_length = max(len(path["move_path"]) for path in all_paths) if all_paths else 0
-        if max_length == 0: return []
-        best_paths = [path for path in all_paths if len(path["move_path"]) == max_length]
-        # if len(best_paths) > 1: return [best_paths[0]]
-
-        print(best_paths)
-        return best_paths
-
-    def simulate_move(self, start_pos, end_pos):
-        start_case = self.board.get_playable_case(start_pos)
-        end_case = self.board.get_playable_case(end_pos)
-
-        piece_to_move = start_case.get_piece()
-        start_case.set_piece(None)
-        end_case.set_piece(piece_to_move)
-
-    def simulate_eat(self, start_pos, end_pos):
-        start_case = self.board.get_playable_case(start_pos)
-        end_case = self.board.get_playable_case(end_pos)
-
-        self.simulate_move(start_pos, end_pos)
-
-        cases_between = self.board.get_cases_between_start_and_end(start_case, end_case)
-        for case in cases_between:
-            opposite_team = self.player1.get_team() if self.current_player == self.player2 else self.player2.get_team()
-            if case.contains_piece_of_team(opposite_team):
-                # print(f"adding {case} to marked !")
-                eaten_case = case.get_coordinates()
-                return eaten_case
 
     def switch_current_player(self):
         """Switch the current player to the other player."""
         self.current_player = self.player1 if self.current_player == self.player2 else self.player2
 
-    def get_cases_who_can_play(self):
-        return self._cases_who_can_play
+
 
     def find_cases_who_can_play(self):
-        if self._cases_who_can_play:
+        if self.board.get_cases_who_can_play():
             return []
         # liste toutes les cases et leurs moves possibles
         cases_data = []
         for case in self.board.get_cases(
                 lambda c: isinstance(c, PlayableCase) and c.contains_piece_of_team(self.current_player.get_team())):
-            cases_data.append((case, case.get_piece().get_valid_paths(self, case.get_coordinates())))
+            cases_data.append((case, case.get_piece().get_valid_paths(self.board, case.get_coordinates())))
 
         cases_with_totals = [
             (case_info[0], len(case_info[1][0]["eaten_pieces"]) if case_info[1] else 0)
@@ -205,18 +105,15 @@ class Game:
                 self.declare_winner(self.player1 if self.current_player == self.player2 else self.player2)
                 return []
         result = [case for case, total in cases_with_totals if total == max_move]
-        self._cases_who_can_play = result
-        return self._cases_who_can_play
+        self.board.set_cases_who_can_play(result)
+        return self.board.get_cases_who_can_play()
 
     def highlight_cases_who_can_play(self):
         case_who_can_play = self.find_cases_who_can_play()
         for case in case_who_can_play:
             case.set_can_play(True)
 
-    def clear_cases_who_can_play(self):
-        for case in self._cases_who_can_play:
-            case.set_can_play(False)
-        self._cases_who_can_play.clear()
+
 
     def handle_events(self):
         mouse_x, mouse_y = pg.mouse.get_pos()
@@ -258,20 +155,20 @@ class Game:
                 x = mouse_x // (self.size + self.offset)
                 y = mouse_y // (self.size + self.offset)
                 if event.button == 1:
-                    has_played = self.current_player.on_click(self, (x, y))
+                    has_played = self.current_player.on_click(self.board, (x, y))
                     print(f"({self.player1}) Clicked on {self.board.get_case((x, y))}")
                     if has_played:
                         self.switch_current_player()
                         self.save_board_state()
                 else:
-                    self.compute_eating_moves(self.board.get_playable_case((x, y)))
+                    self.board.compute_eating_moves(self.board.get_playable_case((x, y)))
                 return
 
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_TAB:
                     self.is_edit_mode = True
                     print(f"edit mode: {self.is_edit_mode}")
-                    self.clear_cases_who_can_play()
+                    self.board.clear_cases_who_can_play()
                 if event.key == pg.K_a:
                     import pyperclip
                     pyperclip.copy(str(self.board))
