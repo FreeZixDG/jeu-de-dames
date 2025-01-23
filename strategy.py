@@ -10,9 +10,8 @@ class Strategy:
         self.start_cases = game.get_cases_who_can_play()
         self.moves = []
         for case in self.start_cases:
-            if isinstance(case, PlayableCase):
-                for move in case.get_piece().get_valid_paths(game, case.get_coordinates()):
-                    self.moves += [(case.get_coordinates(), move["move_path"][-1])]
+            for move in case.get_piece().get_valid_paths(game, case.get_coordinates()):
+                self.moves += [(case.get_coordinates(), move["move_path"][-1])]
 
     def choose_move(self, game):
         raise NotImplementedError

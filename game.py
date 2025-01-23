@@ -294,12 +294,13 @@ class Game:
         while self.running:
             if self.winner:
                 self.end()
+            else:
+                if isinstance(self.current_player, AI):
+                    self.current_player.play(self)
+                    self.switch_current_player()
+                    self.save_board_state()
             self.handle_events()
             self.render()
-            if isinstance(self.current_player, AI):
-                self.current_player.play(self)
-                self.switch_current_player()
-                self.save_board_state()
             self.clock.tick(60)
         pg.quit()
 

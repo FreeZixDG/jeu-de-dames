@@ -116,10 +116,9 @@ class AI(Player):
         self.strategy.update(game)
         start, end = self.strategy.choose_move(game)
         game.render()
-        time.sleep(2)
+        time.sleep(1)
         self.on_click(game, start)
-        game.render()
+        game.draw()
         self.on_click(game, end)
-        game.render()
         print(f"AI plays {start} -> {end}")
         return True
