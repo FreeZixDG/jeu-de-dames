@@ -42,12 +42,13 @@ class Game:
         player2.deselect_case()
 
         current_player = True if self.current_player == self.player1 else False
-
+        winner = None if self.winner is None else True if self.winner == self.player1 else False
         state = {
             "board": board,
             "player1": player1,
             "player2": player2,
             "current_player": current_player,
+            "winner": winner,
         }
         self.history.append(state)
         # print("state saved!")
@@ -64,17 +65,13 @@ class Game:
         self.player1 = deepcopy(self.history[-1]["player1"])
         self.player2 = deepcopy(self.history[-1]["player2"])
         self.current_player = self.player1 if self.history[-1]["current_player"] == True else self.player2
+        self.winner = None if self.history[-1]["winner"] is None else self.player1 if self.history[-1][
+                                                                                          "winner"] == True else self.player2
         self.render()
-
-
-
-
 
     def switch_current_player(self):
         """Switch the current player to the other player."""
         self.current_player = self.player1 if self.current_player == self.player2 else self.player2
-
-
 
     def find_cases_who_can_play(self):
         if self.board.get_cases_who_can_play():
@@ -113,8 +110,6 @@ class Game:
         for case in case_who_can_play:
             case.set_can_play(True)
 
-
-
     def handle_events(self):
         mouse_x, mouse_y = pg.mouse.get_pos()
         for event in pg.event.get():
@@ -152,6 +147,7 @@ class Game:
                 return
 
             if event.type == pg.MOUSEBUTTONDOWN:
+                if self.winner is not None: return
                 x = mouse_x // (self.size + self.offset)
                 y = mouse_y // (self.size + self.offset)
                 if event.button == 1:
@@ -161,7 +157,7 @@ class Game:
                         self.switch_current_player()
                         self.render()
                         # tester
-                        if isinstance(self.current_player, AI):
+                        if isinstance(self.current_player, AI) and self.winner is None:
                             self.current_player.play(self)
                             self.switch_current_player()
                             self.save_board_state()
