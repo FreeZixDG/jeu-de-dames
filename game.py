@@ -159,7 +159,12 @@ class Game:
                     print(f"({self.player1}) Clicked on {self.board.get_case((x, y))}")
                     if has_played:
                         self.switch_current_player()
-                        self.save_board_state()
+                        self.render()
+                        # tester
+                        if isinstance(self.current_player, AI):
+                            self.current_player.play(self)
+                            self.switch_current_player()
+                            self.save_board_state()
                 else:
                     self.board.compute_eating_moves(self.board.get_playable_case((x, y)))
                 return
@@ -191,11 +196,6 @@ class Game:
         while self.running:
             if self.winner:
                 self.end()
-            else:
-                if isinstance(self.current_player, AI):
-                    self.current_player.play(self)
-                    self.switch_current_player()
-                    self.save_board_state()
             self.handle_events()
             self.render()
             self.clock.tick(60)
