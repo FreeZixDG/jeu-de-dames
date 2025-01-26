@@ -53,8 +53,8 @@ class Player:
                     board.clear_cases_who_can_play()
                     for move in self._move_paths:
                         if move["move_path"][-1] == case.get_coordinates():
-                            move["move_path"].insert(0, self._last_selected_case.get_coordinates())
-                            self.play_move(board, move)
+                            if move["move_path"][0] == self._last_selected_case.get_coordinates():
+                                self.play_move(board, move)
 
 
 

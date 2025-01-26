@@ -215,6 +215,8 @@ class Board:
 
             # Si aucun mouvement n'est possible, ajoute le chemin actuel à la liste
             if not possible_moves:
+                if len(path) == 1:
+                    path = []
                 all_paths.append({"move_path": path, "eaten_pieces": eaten_pieces})
                 return
 
@@ -262,7 +264,7 @@ class Board:
                     # sleep(0.4)
 
         # Lance l'exploration depuis la case de départ
-        explore_moves(playable_case, [], [], [])
+        explore_moves(playable_case, [playable_case.get_coordinates()], [], [])
 
         # Trouve les chemins maximaux
         max_length = max(len(path["move_path"]) for path in all_paths) if all_paths else 0
