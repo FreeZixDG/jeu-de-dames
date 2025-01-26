@@ -38,10 +38,10 @@ class Board:
             pions = ((size ** 2) // 2 - size) // 2
             init = f"{pions}b{size}.{pions}w"
             print(init)
-        self.__size = size
-        self.__board = np.zeros((size, size), dtype=Case)
+        self._size = size
+        self._board = np.zeros((size, size), dtype=Case)
 
-        self.init = [(int(num) if num else 1, char) for num, char in re.findall(r"(\d*)([wW]|[bB]|[.])", init)]
+        self._init = [(int(num) if num else 1, char) for num, char in re.findall(r"(\d*)([wW]|[bB]|[.])", init)]
         total = 0
 
         self._cases_who_can_play = []
@@ -66,26 +66,26 @@ class Board:
                 case _:
                     raise ValueError("Invalid character in init string")
             if team is not None:
-                self.__board[coordinates] = PlayableCase(coordinates, content=piece_type(team))
+                self._board[coordinates] = PlayableCase(coordinates, piece=piece_type(team))
             else:
-                self.__board[coordinates] = PlayableCase(coordinates)
+                self._board[coordinates] = PlayableCase(coordinates)
 
-        for num, char in self.init:
+        for num, char in self._init:
             for i in range(num):
                 i += total
                 x, y = moddiv(i * 2, size)
                 if (i // (size // 2)) % 2 == 0:
-                    self.__board[x, y] = Case((x, y))
+                    self._board[x, y] = Case((x, y))
                     x, y = moddiv(i * 2 + 1, size)
                     put_playable_case((x, y), char)
                 else:
                     put_playable_case((x, y), char)
                     x, y = moddiv(i * 2 + 1, size)
-                    self.__board[(x, y)] = Case((x, y))
+                    self._board[(x, y)] = Case((x, y))
             total += num
 
     def get_board(self):
-        return self.__board
+        return self._board
 
     def get_selected_case(self):
         return next(self.get_cases(lambda c: isinstance(c, PlayableCase) and c.is_selected()), None)
@@ -103,9 +103,9 @@ class Board:
 
     def get_case(self, coordinates: tuple[int, int]) -> Case | None:
         x, y = coordinates
-        if not (0 <= x < self.__size and 0 <= y < self.__size):
+        if not (0 <= x < self._size and 0 <= y < self._size):
             return None
-        return self.__board[x, y]
+        return self._board[x, y]
 
     def get_playable_case(self, coordinates: tuple[int, int]) -> PlayableCase | None:
         case = self.get_case(coordinates)
@@ -118,7 +118,7 @@ class Board:
             lambda c: isinstance(c, PlayableCase) and c.can_land())
 
     def get_cases(self, condition):
-        return (case for case in self.__board.flatten() if condition(case))
+        return (case for case in self._board.flatten() if condition(case))
 
     def get_cases_between_start_and_end(self, start: PlayableCase, end: PlayableCase) -> list[PlayableCase]:
         start_x, start_y = start.get_coordinates()
@@ -142,8 +142,8 @@ class Board:
     def is_valid_move(self, coordinates: tuple[int, int]) -> bool:
         """Vérifie si des coordonnées sont valides pour le plateau."""
         x, y = coordinates
-        return 0 <= x < self.__size \
-            and 0 <= y < self.__size
+        return 0 <= x < self._size \
+            and 0 <= y < self._size
 
     def simulate_move(self, start_pos, end_pos):
         start_case = self.get_playable_case(start_pos)
@@ -240,7 +240,7 @@ class Board:
 
     def __repr__(self):
         result = ""
-        for case in self.__board.transpose().flatten():
+        for case in self._board.transpose().flatten():
             if isinstance(case, PlayableCase):
                 lowercase = case.get_piece().__class__.__name__ == "Piece"
                 if case.get_piece() is None:

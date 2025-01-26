@@ -14,35 +14,35 @@ from team import Team
 class Game:
     def __init__(self, init_board: str = None, player1: str = "Player1", player2: str = "Player 2"):
         pg.init()
-        self.screen = pg.display.set_mode(SCREEN_SIZE)
-        self.clock = pg.time.Clock()
-        self.running = True
-        self.board = Board(GRID_SIZE, init_board) if init_board else Board(GRID_SIZE)
+        self._screen = pg.display.set_mode(SCREEN_SIZE)
+        self._clock = pg.time.Clock()
+        self._running = True
+        self._board = Board(GRID_SIZE, init_board) if init_board else Board(GRID_SIZE)
 
-        self.size = CELL_SIZE
-        self.offset = OFFSET
+        self._size = CELL_SIZE
+        self._offset = OFFSET
 
-        self.history = []
+        self._history = []
 
-        self.is_edit_mode = False
+        self._is_edit_mode = False
 
-        self.winner = None
-        self.player1 = Player(0, player1, Team.WHITE)
-        self.player2 = AI(1, player2, Team.BLACK, RandomStrategy())
-        self.current_player = self.player1
+        self._winner = None
+        self._player1 = Player(0, player1, Team.WHITE)
+        self._player2 = AI(1, player2, Team.BLACK, RandomStrategy())
+        self._current_player = self._player1
 
     def save_board_state(self):
-        board = deepcopy(self.board)
+        board = deepcopy(self._board)
 
-        player1 = deepcopy(self.player1)
-        player1.clear_possible_moves(self.board)
+        player1 = deepcopy(self._player1)
+        player1.clear_possible_moves(self._board)
         player1.deselect_case()
-        player2 = deepcopy(self.player2)
-        player2.clear_possible_moves(self.board)
+        player2 = deepcopy(self._player2)
+        player2.clear_possible_moves(self._board)
         player2.deselect_case()
 
-        current_player = True if self.current_player == self.player1 else False
-        winner = None if self.winner is None else True if self.winner == self.player1 else False
+        current_player = True if self._current_player == self._player1 else False
+        winner = None if self._winner is None else True if self._winner == self._player1 else False
         state = {
             "board": board,
             "player1": player1,
@@ -50,37 +50,37 @@ class Game:
             "current_player": current_player,
             "winner": winner,
         }
-        self.history.append(state)
+        self._history.append(state)
         # print("state saved!")
         # print(self.history)
 
     def undo(self):
-        if len(self.history) <= 1:
+        if len(self._history) <= 1:
             print("No more history to undo")
-            print(self.history)
+            print(self._history)
             return
-        print(self.history)
-        self.history.pop()
-        self.board = deepcopy(self.history[-1]["board"])
-        self.player1 = deepcopy(self.history[-1]["player1"])
-        self.player2 = deepcopy(self.history[-1]["player2"])
-        self.current_player = self.player1 if self.history[-1]["current_player"] == True else self.player2
-        self.winner = None if self.history[-1]["winner"] is None else self.player1 if self.history[-1][
-                                                                                          "winner"] == True else self.player2
+        print(self._history)
+        self._history.pop()
+        self._board = deepcopy(self._history[-1]["board"])
+        self._player1 = deepcopy(self._history[-1]["player1"])
+        self._player2 = deepcopy(self._history[-1]["player2"])
+        self._current_player = self._player1 if self._history[-1]["current_player"] == True else self._player2
+        self._winner = None if self._history[-1]["winner"] is None else self._player1 if self._history[-1][
+                                                                                             "winner"] == True else self._player2
         self.render()
 
     def switch_current_player(self):
         """Switch the current player to the other player."""
-        self.current_player = self.player1 if self.current_player == self.player2 else self.player2
+        self._current_player = self._player1 if self._current_player == self._player2 else self._player2
 
     def find_cases_who_can_play(self):
-        if self.board.get_cases_who_can_play():
+        if self._board.get_cases_who_can_play():
             return []
         # liste toutes les cases et leurs moves possibles
         cases_data = []
-        for case in self.board.get_cases(
-                lambda c: isinstance(c, PlayableCase) and c.contains_piece_of_team(self.current_player.get_team())):
-            cases_data.append((case, case.get_piece().get_valid_paths(self.board, case.get_coordinates())))
+        for case in self._board.get_cases(
+                lambda c: isinstance(c, PlayableCase) and c.contains_piece_of_team(self._current_player.get_team())):
+            cases_data.append((case, case.get_piece().get_valid_paths(self._board, case.get_coordinates())))
 
         cases_with_totals = [
             (case_info[0], len(case_info[1][0]["eaten_pieces"]) if case_info[1] else 0)
@@ -88,7 +88,7 @@ class Game:
         ]
 
         if not cases_with_totals:
-            self.declare_winner(self.player1 if self.current_player == self.player2 else self.player2)
+            self.declare_winner(self._player1 if self._current_player == self._player2 else self._player2)
             return []
 
         max_move = max(total for _, total in cases_with_totals)
@@ -99,11 +99,11 @@ class Game:
             ]
             max_move = max(total for _, total in cases_with_totals)
             if max_move == 0:
-                self.declare_winner(self.player1 if self.current_player == self.player2 else self.player2)
+                self.declare_winner(self._player1 if self._current_player == self._player2 else self._player2)
                 return []
         result = [case for case, total in cases_with_totals if total == max_move]
-        self.board.set_cases_who_can_play(result)
-        return self.board.get_cases_who_can_play()
+        self._board.set_cases_who_can_play(result)
+        return self._board.get_cases_who_can_play()
 
     def highlight_cases_who_can_play(self):
         case_who_can_play = self.find_cases_who_can_play()
@@ -114,25 +114,25 @@ class Game:
         mouse_x, mouse_y = pg.mouse.get_pos()
         for event in pg.event.get():
             if event.type == pg.QUIT:
-                self.running = False
+                self._running = False
                 return
-            if self.is_edit_mode:
+            if self._is_edit_mode:
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_TAB:
-                        self.is_edit_mode = False
+                        self._is_edit_mode = False
                         print("edit mode: False")
                         return
                     if event.key == pg.K_c:
                         print("clear")
-                        for case in self.board.get_cases(lambda c: isinstance(c, PlayableCase)):
+                        for case in self._board.get_cases(lambda c: isinstance(c, PlayableCase)):
                             case.set_piece(None)
 
                         return
 
                     from piece import Piece, Queen
-                    x = mouse_x // (self.size + self.offset)
-                    y = mouse_y // (self.size + self.offset)
-                    case = self.board.get_case((x, y))
+                    x = mouse_x // (self._size + self._offset)
+                    y = mouse_y // (self._size + self._offset)
+                    case = self._board.get_case((x, y))
                     if isinstance(case, PlayableCase):
                         piece = None
                         if event.key == pg.K_q:
@@ -147,33 +147,33 @@ class Game:
                 return
 
             if event.type == pg.MOUSEBUTTONDOWN:
-                if self.winner is not None: return
-                x = mouse_x // (self.size + self.offset)
-                y = mouse_y // (self.size + self.offset)
+                if self._winner is not None: return
+                x = mouse_x // (self._size + self._offset)
+                y = mouse_y // (self._size + self._offset)
                 if event.button == 1:
-                    has_played = self.current_player.on_click(self.board, (x, y))
-                    print(f"({self.player1}) Clicked on {self.board.get_case((x, y))}")
+                    has_played = self._current_player.on_click(self._board, (x, y))
+                    print(f"({self._player1}) Clicked on {self._board.get_case((x, y))}")
                     if has_played:
                         self.switch_current_player()
                         self.render()
                         # tester
-                        if isinstance(self.current_player, AI) and self.winner is None:
-                            self.current_player.play(self)
+                        if isinstance(self._current_player, AI) and self._winner is None:
+                            self._current_player.play(self)
                             self.switch_current_player()
                             self.save_board_state()
                 else:
-                    self.board.compute_eating_moves(self.board.get_playable_case((x, y)))
+                    self._board.compute_eating_moves(self._board.get_playable_case((x, y)))
                 return
 
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_TAB:
-                    self.is_edit_mode = True
-                    print(f"edit mode: {self.is_edit_mode}")
-                    self.board.clear_cases_who_can_play()
+                    self._is_edit_mode = True
+                    print(f"edit mode: {self._is_edit_mode}")
+                    self._board.clear_cases_who_can_play()
                 if event.key == pg.K_a:
                     import pyperclip
-                    pyperclip.copy(str(self.board))
-                    print(self.board)
+                    pyperclip.copy(str(self._board))
+                    print(self._board)
                 elif event.key == pg.K_z:
                     print("Undoing...")
                     self.undo()
@@ -183,24 +183,24 @@ class Game:
                 return
 
     def render(self):
-        self.screen.fill("black")
+        self._screen.fill("black")
         self.draw()
         pg.display.flip()
 
     def run(self):
         self.save_board_state()
-        while self.running:
-            if self.winner:
+        while self._running:
+            if self._winner:
                 self.end()
             self.handle_events()
             self.render()
-            self.clock.tick(60)
+            self._clock.tick(60)
         pg.quit()
 
     def draw(self):
-        for row in self.board.get_board():
+        for row in self._board.get_board():
             for case in row:
-                case.draw(self.screen, self.size, self.offset)
+                case.draw(self._screen, self._size, self._offset)
 
         self.highlight_moves()
         self.highlight_cases_who_can_play()
@@ -208,11 +208,11 @@ class Game:
     def highlight_moves(self):
         """Met en évidence les cases accessibles."""
 
-        for path in self.current_player.get_possible_moves():
-            last_case = self.board.get_playable_case(path[-1])
+        for path in self._current_player.get_possible_moves():
+            last_case = self._board.get_playable_case(path[-1])
             last_case.set_can_land(True)
 
-            case = self.board.get_selected_case()
+            case = self._board.get_selected_case()
             if case is None:
                 return
             self.draw_arrows(case.get_coordinates(), path[0])
@@ -220,20 +220,20 @@ class Game:
                 self.draw_arrows(path[i], path[i + 1])
 
     def draw_arrows(self, start_coord, end_coord):
-        start_pos = add(mult(start_coord, (self.size + self.offset)), int(self.size // 2))
-        end_pos = add(mult(end_coord, (self.size + self.offset)), int(self.size // 2))
-        pg.draw.line(self.screen, ARROWS_COLOR, start_pos, end_pos, LINES_INDICATOR_WIDTH)
+        start_pos = add(mult(start_coord, (self._size + self._offset)), int(self._size // 2))
+        end_pos = add(mult(end_coord, (self._size + self._offset)), int(self._size // 2))
+        pg.draw.line(self._screen, ARROWS_COLOR, start_pos, end_pos, LINES_INDICATOR_WIDTH)
 
     def declare_winner(self, param):
-        self.winner = param
-        self.winner.win(True)
-        self.current_player.win(False)
+        self._winner = param
+        self._winner.win(True)
+        self._current_player.win(False)
         self.end()
 
     def end(self):
         game_font = pg.font.SysFont("Arial", 50)
-        text = game_font.render(f"{self.winner.get_team().value}s won !", 1, (0, 0, 0))
-        self.screen.blit(text, (int(SCREEN_SIZE[0] // 4), int(SCREEN_SIZE[1] // 4)))
+        text = game_font.render(f"{self._winner.get_team().value}s won !", 1, (0, 0, 0))
+        self._screen.blit(text, (int(SCREEN_SIZE[0] // 4), int(SCREEN_SIZE[1] // 4)))
 
 
 def mult(t: tuple[int | float, ...], c: int | float):

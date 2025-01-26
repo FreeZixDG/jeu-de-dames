@@ -3,15 +3,15 @@ from case import PlayableCase
 
 class Strategy:
     def __init__(self):
-        self.start_cases: list[PlayableCase] = []
-        self.moves: list[PlayableCase] = []
+        self._start_cases: list[PlayableCase] = []
+        self._moves: list[PlayableCase] = []
 
     def update(self, board):
-        self.start_cases = board.get_cases_who_can_play()
-        self.moves = []
-        for case in self.start_cases:
+        self._start_cases = board.get_cases_who_can_play()
+        self._moves = []
+        for case in self._start_cases:
             for move in case.get_piece().get_valid_paths(board, case.get_coordinates()):
-                self.moves += [(case.get_coordinates(), move["move_path"][-1])]
+                self._moves += [(case.get_coordinates(), move["move_path"][-1])]
 
     def choose_move(self, board):
         raise NotImplementedError
@@ -23,7 +23,7 @@ class RandomStrategy(Strategy):
 
     def choose_move(self, board):
         from random import choice
-        result_start, result_end = choice(self.moves)
+        result_start, result_end = choice(self._moves)
 
         return result_start, result_end
 

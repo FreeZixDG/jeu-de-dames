@@ -28,66 +28,66 @@ class Case:
 
 
 class PlayableCase(Case):
-    def __init__(self, coordinates: tuple[int, int], content: Piece = None):
+    def __init__(self, coordinates: tuple[int, int], piece: Piece = None):
         super().__init__(coordinates)
-        self.__is_selected = False
-        self.__can_land = False
+        self._is_selected = False
+        self._can_land = False
         self._color = DEFAULT_PLAYABLE_COLOR
-        self.__piece = content
-        self.__can_play = False
+        self._piece = piece
+        self._can_play = False
 
     def get_can_play(self):
-        return self.__can_play
+        return self._can_play
 
     def set_can_play(self, can_play: bool):
-        self.__can_play = can_play
+        self._can_play = can_play
         self.determine_color()
 
     def get_piece(self) -> Piece:
-        return self.__piece
+        return self._piece
 
     def set_piece(self, content: Piece | None) -> None:
-        self.__piece = content
+        self._piece = content
 
     def set_selected(self, param: bool) -> None:
-        self.__is_selected = param
+        self._is_selected = param
         self.determine_color()
 
     def set_can_land(self, param: bool) -> None:
-        self.__can_land = param
+        self._can_land = param
 
     def contains_piece_of_team(self, team: Team) -> bool:
-        return self.__piece is not None and self.__piece.get_team() == team
+        return self._piece is not None and self._piece.get_team() == team
 
     def is_selected(self) -> bool:
-        return self.__is_selected
+        return self._is_selected
 
     def can_land(self) -> bool:
-        return self.__can_land
+        return self._can_land
 
     def try_promotion(self) -> None:
         from piece import Queen
-        if self._y == 0 and self.__piece.get_team() is Team.WHITE:
-            self.__piece = Queen(self.__piece.get_team())
-        elif self._y == GRID_SIZE - 1 and self.__piece.get_team() is Team.BLACK:
-            self.__piece = Queen(self.__piece.get_team())
+        if self._y == 0 and self._piece.get_team() is Team.WHITE:
+            self._piece = Queen(self._piece.get_team())
+        elif self._y == GRID_SIZE - 1 and self._piece.get_team() is Team.BLACK:
+            self._piece = Queen(self._piece.get_team())
 
     def draw(self, surface: pg.Surface, size: int, offset: int = 0) -> None:
         super().draw(surface, size, offset)
-        if self.__piece is not None:
-            self.__piece.draw(surface, self.get_coordinates(), size, offset)
-        elif self.__can_land:
+        if self._piece is not None:
+            self._piece.draw(surface, self.get_coordinates(), size, offset)
+        elif self._can_land:
             pg.draw.circle(surface, ARROWS_COLOR,
                            (self._x * (size + offset) + size / 2, self._y * (size + offset) + size / 2), size / 6)
 
 
     def __repr__(self) -> str:
-        return f"{super().__repr__()} {self.__piece}"
+        return f"{super().__repr__()} {self._piece}"
 
     def determine_color(self):
         if self.is_selected():
             self._color = SELECTED_COLOR
-        elif self.__can_play:
+        elif self._can_play:
             self._color = CAN_PLAY_COLOR
         else:
             self._color = DEFAULT_PLAYABLE_COLOR
