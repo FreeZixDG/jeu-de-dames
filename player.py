@@ -112,9 +112,13 @@ class AI(Player):
         self.strategy = strategy
 
     def play(self, game: Game):
-        self.strategy.update(game.get_board())
+        state = {
+            "board": game.get_board(),
+            "current_player": self,
+        }
+        self.strategy.update(state)
         game.render()
-        start, end = self.strategy.choose_move(deepcopy(game.get_board()))
+        start, end = self.strategy.choose_move(deepcopy(state))
 
         time.sleep(1)
         self.on_click(game.get_board(), start)
