@@ -153,19 +153,16 @@ class Game:
                 if self._winner is not None: return
                 x = mouse_x // (self._size + self._offset)
                 y = mouse_y // (self._size + self._offset)
-                if event.button == 1:
-                    has_played = self._current_player.on_click(self._board, (x, y))
-                    print(f"({self._player1}) Clicked on {self._board.get_case((x, y))}")
-                    if has_played:
+                has_played = self._current_player.on_click(self._board, (x, y))
+                print(f"({self._player1}) Clicked on {self._board.get_case((x, y))}")
+                if has_played:
+                    self.switch_current_player()
+                    self.render()
+                    # tester
+                    if isinstance(self._current_player, AI) and self._winner is None:
+                        self._current_player.play(self)
                         self.switch_current_player()
-                        self.render()
-                        # tester
-                        if isinstance(self._current_player, AI) and self._winner is None:
-                            self._current_player.play(self)
-                            self.switch_current_player()
-                            self.save_board_state()
-                else:
-                    self._board.compute_eating_moves(self._board.get_playable_case((x, y)))
+                        self.save_board_state()
                 return
 
             if event.type == pg.KEYDOWN:
@@ -216,8 +213,6 @@ class Game:
             last_case.set_can_land(True)
 
             case = self._board.get_selected_case()
-            if case is None:
-                return
             self.draw_arrows(case.get_coordinates(), path[0])
             for i in range(len(path) - 1):
                 self.draw_arrows(path[i], path[i + 1])
