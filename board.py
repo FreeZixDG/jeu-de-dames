@@ -4,6 +4,7 @@ import numpy as np
 
 from case import Case, PlayableCase
 from piece import Piece, Queen
+from player import Player
 from team import Team
 
 
@@ -33,15 +34,15 @@ def sign(a, b):
 
 
 class Board:
-    def __init__(self, size: int, init: str = None):
-        if init is None:
+    def __init__(self, size: int, init_board: str = None):
+        if init_board is None:
             pions = ((size ** 2) // 2 - size) // 2
-            init = f"{pions}b{size}.{pions}w"
-            print(init)
+            init_board = f"{pions}b{size}.{pions}w"
+            print(init_board)
         self._size = size
         self._board = np.zeros((size, size), dtype=Case)
 
-        self._init = [(int(num) if num else 1, char) for num, char in re.findall(r"(\d*)([wW]|[bB]|[.])", init)]
+        self._init = [(int(num) if num else 1, char) for num, char in re.findall(r"(\d*)([wW]|[bB]|[.])", init_board)]
         total = 0
 
         self._cases_who_can_play = []
@@ -144,6 +145,40 @@ class Board:
         x, y = coordinates
         return 0 <= x < self._size \
             and 0 <= y < self._size
+
+    def find_cases_who_can_play(self, current_player: Player):
+        # liste toutes les cases et leurs moves possibles
+        cases_data = []
+        for case in self.get_cases(
+                lambda c: isinstance(c, PlayableCase) and c.contains_piece_of_team(current_player.get_team())):
+            cases_data.append((case, case.get_piece().get_valid_paths(self, case.get_coordinates())))
+
+        cases_with_totals = [
+            (case_info[0], case_info[1], len(case_info[1][0]["eaten_pieces"]) if case_info[1] else 0)
+            for case_info in cases_data
+        ]
+
+        if not cases_with_totals:
+            return []
+
+        max_move = max(total for _, _, total in cases_with_totals)
+        if max_move == 0:
+            cases_with_totals = [
+                (case_info[0], case_info[1], len(case_info[1][0]["move_path"]) if case_info[1] else 0)
+                for case_info in cases_data
+            ]
+            max_move = max(total for _, _, total in cases_with_totals)
+            if max_move == 0:
+                return []
+        # building result
+        cases_who_can_play = []
+        result = []
+        for case, move, total in cases_with_totals:
+            if total == max_move:
+                cases_who_can_play.append(case)
+                result.append((case, move))
+        self.set_cases_who_can_play(cases_who_can_play)
+        return result
 
     def simulate_move(self, start_pos, end_pos):
         start_case = self.get_playable_case(start_pos)

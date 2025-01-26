@@ -76,46 +76,14 @@ class Game:
         """Switch the current player to the other player."""
         self._current_player = self._player1 if self._current_player == self._player2 else self._player2
 
-    def find_cases_who_can_play(self):
-        if self._board.get_cases_who_can_play():
-            return []
-        # liste toutes les cases et leurs moves possibles
-        cases_data = []
-        for case in self._board.get_cases(
-                lambda c: isinstance(c, PlayableCase) and c.contains_piece_of_team(self._current_player.get_team())):
-            cases_data.append((case, case.get_piece().get_valid_paths(self._board, case.get_coordinates())))
-
-        cases_with_totals = [
-            (case_info[0], case_info[1], len(case_info[1][0]["eaten_pieces"]) if case_info[1] else 0)
-            for case_info in cases_data
-        ]
-
-        if not cases_with_totals:
-            self.declare_winner(self._player1 if self._current_player == self._player2 else self._player2)
-            return []
-
-        max_move = max(total for _, _, total in cases_with_totals)
-        if max_move == 0:
-            cases_with_totals = [
-                (case_info[0], case_info[1], len(case_info[1][0]["move_path"]) if case_info[1] else 0)
-                for case_info in cases_data
-            ]
-            max_move = max(total for _, _, total in cases_with_totals)
-            if max_move == 0:
-                self.declare_winner(self._player1 if self._current_player == self._player2 else self._player2)
-                return []
-        # building result
-        cases_who_can_play = []
-        result = []
-        for case, move, total in cases_with_totals:
-            if total == max_move:
-                cases_who_can_play.append(case)
-                result.append((case, move))
-        self._board.set_cases_who_can_play(cases_who_can_play)
-        return result
-
     def highlight_cases_who_can_play(self):
-        case_who_can_play = self.find_cases_who_can_play()
+        if self._board.get_cases_who_can_play():
+            return
+
+        case_who_can_play = self._board.find_cases_who_can_play(self._current_player)
+        if not case_who_can_play:
+            self.declare_winner(self._player1 if self._current_player == self._player2 else self._player2)
+            return
         for case, move in case_who_can_play:
             case.set_can_play(move)
 

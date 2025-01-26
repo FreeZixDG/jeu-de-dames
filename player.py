@@ -53,12 +53,11 @@ class Player:
                     board.clear_cases_who_can_play()
                     for move in self._move_paths:
                         if move["move_path"][-1] == case.get_coordinates():
-                            self.__move_piece(board.get_case(move["move_path"][-1]))
-                            for coord in move["eaten_pieces"]:
-                                case = board.get_playable_case(coord)
-                                piece = case.get_piece()
-                                case.set_piece(None)
-                                self._eaten_pieces += [piece]
+                            move["move_path"].insert(0, self._last_selected_case.get_coordinates())
+                            self.play_move(board, move)
+
+
+
 
             elif case.contains_piece_of_team(self.get_team()) and case.get_can_play():
                 self.deselect_case()
@@ -75,6 +74,13 @@ class Player:
         self.clear_possible_moves(board)
         return has_played
 
+    def _eat_pieces(self, board: Board, eating_list):
+        for coord in eating_list:
+            case = board.get_playable_case(coord)
+            piece = case.get_piece()
+            case.set_piece(None)
+            self._eaten_pieces += [piece]
+
     def deselect_case(self):
         if self._last_selected_case is not None:
             self._last_selected_case.set_selected(False)
@@ -90,11 +96,11 @@ class Player:
                 case.set_can_land(False)
         self._possible_moves.clear()
 
-    def __move_piece(self, case: PlayableCase):
-        piece = self._last_selected_case.get_piece()
+    def __move_piece(self, start, end: PlayableCase):
+        piece = start.get_piece()
         self._last_selected_case.set_piece(None)
-        case.set_piece(piece)
-        case.try_promotion()
+        end.set_piece(piece)
+        end.try_promotion()
 
     def win(self, win):
         if win:
@@ -104,6 +110,10 @@ class Player:
 
     def __repr__(self):
         return f"{self._name} ({self._team.value}) {self._eaten_pieces}"
+
+    def play_move(self, board, move):
+        self.__move_piece(board.get_case(move["move_path"][0]), board.get_case(move["move_path"][-1]))
+        self._eat_pieces(board, move["eaten_pieces"])
 
 
 class AI(Player):

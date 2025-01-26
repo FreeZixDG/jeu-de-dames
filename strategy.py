@@ -1,17 +1,15 @@
-from dataclasses import dataclass
+from __future__ import annotations
+
+import copy
 from typing import TYPE_CHECKING
 
 from case import PlayableCase
 
 if TYPE_CHECKING:
     from board import Board
-    from player import Player
+    from player import AI
 
-
-@dataclass
-class State:
-    board: "Board"
-    current_player: "Player"
+State = dict
 
 
 class Strategy:
@@ -20,7 +18,7 @@ class Strategy:
         self._moves: list[PlayableCase] = []
 
     def update(self, state: State):
-        board = state.board
+        board = state["board"]
         self._start_cases = board.get_cases_who_can_play()
         self._moves = []
         for case in self._start_cases:
@@ -64,16 +62,19 @@ class MiniMax(Strategy):
         pass
 
     def is_leaf(self, state: State):
-        pass
+        return not self.get_childs(state)
 
     def evaluate(self, state):
         pass
 
     def get_childs(self, state):
-        board = state.board
-        current_player = state.current_player
-        for case in board.get_cases(
-                lambda c: isinstance(c, PlayableCase) and c.contains_piece_of_team(current_player.get_team())):
-            if case.get_piece().get_valid_paths(board, case.get_coordinates()):
-                return False
-        return True
+        board: Board = state["board"]
+        current_player: AI = state["current_player"]
+        result: list[Board] = []
+        moves = board.find_cases_who_can_play(current_player)
+
+        if moves:
+            new_board = copy.deepcopy(board)
+            current_player.play_move()
+            result += [new_board]
+        return result
