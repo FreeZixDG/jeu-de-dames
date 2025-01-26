@@ -215,8 +215,6 @@ class Board:
 
             # Si aucun mouvement n'est possible, ajoute le chemin actuel à la liste
             if not possible_moves:
-                if len(path) == 1:
-                    path = []
                 all_paths.append({"move_path": path, "eaten_pieces": eaten_pieces})
                 return
 
@@ -268,7 +266,7 @@ class Board:
 
         # Trouve les chemins maximaux
         max_length = max(len(path["move_path"]) for path in all_paths) if all_paths else 0
-        if max_length == 0: return []
+        if max_length == 1: return []
         best_paths = [path for path in all_paths if len(path["move_path"]) == max_length]
         # if len(best_paths) > 1: return [best_paths[0]]
 
