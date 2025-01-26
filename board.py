@@ -270,7 +270,6 @@ class Board:
         best_paths = [path for path in all_paths if len(path["move_path"]) == max_length]
         # if len(best_paths) > 1: return [best_paths[0]]
 
-        print(best_paths)
         return best_paths
 
     def __repr__(self):

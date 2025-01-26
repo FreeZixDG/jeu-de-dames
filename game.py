@@ -7,7 +7,7 @@ from case import PlayableCase
 from colors_constants import ARROWS_COLOR
 from config import SCREEN_SIZE, GRID_SIZE, CELL_SIZE, OFFSET, LINES_INDICATOR_WIDTH
 from player import Player, AI
-from strategy import RandomStrategy
+from strategy import MiniMax
 from team import Team
 
 
@@ -28,9 +28,14 @@ class Game:
 
         self._winner = None
         self._player1 = Player(0, player1, Team.WHITE)
-        self._player2 = AI(1, player2, Team.BLACK, RandomStrategy())
+        self._player2 = AI(1, player2, Team.BLACK, MiniMax())
         self._current_player = self._player1
 
+    def get_player1(self):
+        return self._player1
+
+    def get_player2(self):
+        return self._player2
     def save_board_state(self):
         board = deepcopy(self._board)
 

@@ -53,7 +53,6 @@ class Player:
                     board.clear_cases_who_can_play()
                     for move in self._move_paths:
                         if move["move_path"][-1] == case.get_coordinates():
-                            print(move["move_path"][0], self._last_selected_case.get_coordinates())
                             if move["move_path"][0] == self._last_selected_case.get_coordinates():
                                 self.play_move(board, move)
 
@@ -99,7 +98,7 @@ class Player:
 
     def __move_piece(self, start, end: PlayableCase):
         piece = start.get_piece()
-        self._last_selected_case.set_piece(None)
+        start.set_piece(None)
         end.set_piece(piece)
         end.try_promotion()
 
@@ -125,6 +124,8 @@ class AI(Player):
     def play(self, game: Game):
         state = {
             "board": game.get_board(),
+            "self_player": self,
+            "enemy_player": game.get_player1(),
             "current_player": self,
         }
         self.strategy.update(state)
