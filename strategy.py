@@ -11,8 +11,7 @@ if TYPE_CHECKING:
 
 State = dict
 
-INF = float('inf')
-
+INF = 1e10
 
 class Strategy:
     def __init__(self):
@@ -64,7 +63,7 @@ class MiniMax(Strategy):
         if self.is_leaf(state) or depth == 0:
             return color * self.evaluate(state), state, "Terminal"
 
-        best_value = -INF
+        best_value = -INF - 1
         best_state = None
         best_move = None
         for new_state, new_move in self.get_childs(state):
@@ -107,6 +106,8 @@ class MiniMax(Strategy):
         self_player = state["self_player"]
         result = []
         cases_who_can_play = board.find_cases_who_can_play(current_player)
+        if not cases_who_can_play:
+            print("No cases who can play")
 
         for _, moves in cases_who_can_play:
             for move in moves:
