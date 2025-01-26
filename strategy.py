@@ -43,8 +43,9 @@ class RandomStrategy(Strategy):
 
 
 class MiniMax(Strategy):
-    def __init__(self):
+    def __init__(self, max_depth: int = 3):
         super().__init__()
+        self.max_depth = max_depth
 
     def neg_alpha_beta(self, state: State, depth: int, alpha, beta, color: int):
         if self.is_leaf(state) or depth == 0:
@@ -67,8 +68,12 @@ class MiniMax(Strategy):
         return best_value, best_state, best_move
 
     def choose_move(self, state: State):
-        val, new_state, best_move = self.neg_alpha_beta(state, 6, -INF, +INF, color=1)
-        print(val)
+        val, new_state, best_move = self.neg_alpha_beta(state, self.max_depth, -INF, +INF, color=1)
+        print(f"AI eval: {-val}")
+        if val == INF:
+            print("Winning ! :D")
+        elif val == -INF:
+            print("Loosing ! :(")
         return best_move
 
     def is_leaf(self, state: State):

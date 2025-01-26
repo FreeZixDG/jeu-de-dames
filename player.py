@@ -49,7 +49,6 @@ class Player:
             if case.can_land():
                 if self._last_selected_case.get_can_play():
                     has_played = True
-                    print("clearing !")
                     board.clear_cases_who_can_play()
                     for move in self._move_paths:
                         if move["move_path"][-1] == case.get_coordinates():
@@ -150,5 +149,8 @@ class AI(Player):
         self.on_click(game.get_board(), start)
         game.draw()
         self.on_click(game.get_board(), end)
-        print(f"AI plays {start} -> {end}")
+        print(f"{self} plays {start} -> {end}")
         return True
+
+    def __repr__(self):
+        return f"{self._name} ({self._team.value}) (Start: {self.strategy.__class__.__name__})"

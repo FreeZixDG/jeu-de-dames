@@ -28,7 +28,7 @@ class Game:
 
         self._winner = None
         self._player1 = Player(0, player1, Team.WHITE)
-        self._player2 = AI(1, player2, Team.BLACK, MiniMax())
+        self._player2 = AI(1, player2, Team.BLACK, MiniMax(max_depth=7))
         self._current_player = self._player1
 
     def get_player1(self):
