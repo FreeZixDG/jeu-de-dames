@@ -73,7 +73,7 @@ class Piece:
             return result
         if isinstance(case, PlayableCase):
             if case.get_piece() is None:
-                result.append({"move_path": [(x, y)], "eaten_pieces": []})
+                result.append({"move_path": [current_position, (x, y)], "eaten_pieces": []})
                 return result
             elif case.get_piece().get_team() == self._team:
                 return []
@@ -168,7 +168,7 @@ class Queen(Piece):
                 break
             if isinstance(case, PlayableCase):
                 if case.get_piece() is None:
-                    result.append({"move_path": [(x, y)], "eaten_pieces": []})
+                    result.append({"move_path": [current_position, (x, y)], "eaten_pieces": []})
                 else:
                     break
 
