@@ -67,6 +67,7 @@ class Player:
                 self._last_selected_case.set_selected(True)
 
                 piece = case.get_piece()
+                # TODO: ameliorer cette ligne, ne pas recalculer les coups
                 moves = piece.get_valid_paths(board, case.get_coordinates())
                 self._move_paths = moves
                 self.add_possible_move([move["move_path"] for move in self._move_paths])
@@ -113,12 +114,13 @@ class AI(Player):
         self.strategy = strategy
 
     def play(self, game: Game):
-        self.strategy.update(game._board)
-        start, end = self.strategy.choose_move(deepcopy(game._board))
+        self.strategy.update(game.get_board())
         game.render()
+        start, end = self.strategy.choose_move(deepcopy(game.get_board()))
+
         time.sleep(1)
-        self.on_click(game._board, start)
+        self.on_click(game.get_board(), start)
         game.draw()
-        self.on_click(game._board, end)
+        self.on_click(game.get_board(), end)
         print(f"AI plays {start} -> {end}")
         return True

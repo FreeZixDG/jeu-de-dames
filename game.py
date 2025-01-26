@@ -69,6 +69,9 @@ class Game:
                                                                                              "winner"] == True else self._player2
         self.render()
 
+    def get_board(self):
+        return self._board
+
     def switch_current_player(self):
         """Switch the current player to the other player."""
         self._current_player = self._player1 if self._current_player == self._player2 else self._player2
