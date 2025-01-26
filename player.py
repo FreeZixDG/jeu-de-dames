@@ -66,9 +66,7 @@ class Player:
                 self._last_selected_case = case
                 self._last_selected_case.set_selected(True)
 
-                piece = case.get_piece()
-                # TODO: ameliorer cette ligne, ne pas recalculer les coups
-                moves = piece.get_valid_paths(board, case.get_coordinates())
+                moves = case.get_move()
                 self._move_paths = moves
                 self.add_possible_move([move["move_path"] for move in self._move_paths])
                 return has_played

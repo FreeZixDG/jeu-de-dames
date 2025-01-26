@@ -86,7 +86,7 @@ class Game:
             cases_data.append((case, case.get_piece().get_valid_paths(self._board, case.get_coordinates())))
 
         cases_with_totals = [
-            (case_info[0], len(case_info[1][0]["eaten_pieces"]) if case_info[1] else 0)
+            (case_info[0], case_info[1], len(case_info[1][0]["eaten_pieces"]) if case_info[1] else 0)
             for case_info in cases_data
         ]
 
@@ -94,24 +94,30 @@ class Game:
             self.declare_winner(self._player1 if self._current_player == self._player2 else self._player2)
             return []
 
-        max_move = max(total for _, total in cases_with_totals)
+        max_move = max(total for _, _, total in cases_with_totals)
         if max_move == 0:
             cases_with_totals = [
-                (case_info[0], len(case_info[1][0]["move_path"]) if case_info[1] else 0)
+                (case_info[0], case_info[1], len(case_info[1][0]["move_path"]) if case_info[1] else 0)
                 for case_info in cases_data
             ]
-            max_move = max(total for _, total in cases_with_totals)
+            max_move = max(total for _, _, total in cases_with_totals)
             if max_move == 0:
                 self.declare_winner(self._player1 if self._current_player == self._player2 else self._player2)
                 return []
-        result = [case for case, total in cases_with_totals if total == max_move]
-        self._board.set_cases_who_can_play(result)
-        return self._board.get_cases_who_can_play()
+        # building result
+        cases_who_can_play = []
+        result = []
+        for case, move, total in cases_with_totals:
+            if total == max_move:
+                cases_who_can_play.append(case)
+                result.append((case, move))
+        self._board.set_cases_who_can_play(cases_who_can_play)
+        return result
 
     def highlight_cases_who_can_play(self):
         case_who_can_play = self.find_cases_who_can_play()
-        for case in case_who_can_play:
-            case.set_can_play(True)
+        for case, move in case_who_can_play:
+            case.set_can_play(move)
 
     def handle_events(self):
         mouse_x, mouse_y = pg.mouse.get_pos()

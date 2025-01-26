@@ -34,13 +34,16 @@ class PlayableCase(Case):
         self._can_land = False
         self._color = DEFAULT_PLAYABLE_COLOR
         self._piece = piece
-        self._can_play = []
+        self._move = []
+
+    def get_move(self):
+        return self._move
 
     def get_can_play(self):
-        return self._can_play
+        return self._move
 
-    def set_can_play(self, can_play: bool):
-        self._can_play = can_play
+    def set_can_play(self, can_play):
+        self._move = can_play
         self.update_color()
 
     def get_piece(self) -> Piece:
@@ -87,7 +90,7 @@ class PlayableCase(Case):
     def update_color(self):
         if self.is_selected():
             self._color = SELECTED_COLOR
-        elif self._can_play:
+        elif self._move:
             self._color = CAN_PLAY_COLOR
         else:
             self._color = DEFAULT_PLAYABLE_COLOR
