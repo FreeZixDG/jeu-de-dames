@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import time
 from copy import deepcopy
 from typing import TYPE_CHECKING, Optional
 
 from case import Case, PlayableCase
+from piece import Piece
 from strategy import Strategy
 from team import Team
 
@@ -74,12 +74,7 @@ class Player:
         self.clear_possible_moves(board)
         return has_played
 
-    def _eat_pieces(self, board: Board, eating_list):
-        for coord in eating_list:
-            case = board.get_playable_case(coord)
-            piece = case.get_piece()
-            case.set_piece(None)
-            self._eaten_pieces += [piece]
+
 
     def deselect_case(self):
         if self._last_selected_case is not None:
@@ -96,11 +91,11 @@ class Player:
                 case.set_can_land(False)
         self._possible_moves.clear()
 
-    def __move_piece(self, start, end: PlayableCase):
+    def _move_piece(self, start, end: PlayableCase):
         piece = start.get_piece()
         start.set_piece(None)
         end.set_piece(piece)
-        end.try_promotion()
+        return end.try_promotion()
 
     def win(self, win):
         if win:
@@ -111,9 +106,28 @@ class Player:
     def __repr__(self):
         return f"{self._name} ({self._team.value}) {self._eaten_pieces}"
 
+    def _eat_pieces(self, board: Board, eating_list):
+        for coord in eating_list:
+            case = board.get_playable_case(coord)
+            piece = case.get_piece()
+            case.set_piece(None)
+            self._eaten_pieces += [piece]
+
     def play_move(self, board, move):
-        self.__move_piece(board.get_case(move["move_path"][0]), board.get_case(move["move_path"][-1]))
+        promoted = self._move_piece(board.get_case(move["move_path"][0]), board.get_case(move["move_path"][-1]))
         self._eat_pieces(board, move["eaten_pieces"])
+        return promoted
+
+    def undo_move(self, board, move, unpromote=False):
+        if unpromote:
+            board.get_case(move["move_path"][-1]).set_piece(Piece(self.get_team()))
+        self._move_piece(board.get_case(move["move_path"][-1]), board.get_case(move["move_path"][0]))
+        self._vomit_pieces(board, move["eaten_pieces"])
+
+    def _vomit_pieces(self, board, eating_list):
+        for coord in eating_list:
+            case = board.get_playable_case(coord)
+            case.set_piece(self._eaten_pieces.pop())
 
 
 class AI(Player):
@@ -132,7 +146,7 @@ class AI(Player):
         game.render()
         start, end = self.strategy.choose_move(deepcopy(state))
 
-        time.sleep(1)
+        # time.sleep(1)
         self.on_click(game.get_board(), start)
         game.draw()
         self.on_click(game.get_board(), end)

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import copy
 from typing import TYPE_CHECKING
 
 from case import PlayableCase
+from config import GRID_SIZE
 
 if TYPE_CHECKING:
     from board import Board
@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 State = dict
 
 INF = 1e10
+
 
 class Strategy:
     def __init__(self):
@@ -44,20 +45,6 @@ class RandomStrategy(Strategy):
 class MiniMax(Strategy):
     def __init__(self):
         super().__init__()
-
-    def minimax(self, state: State, depth: int, maximizing_player: bool):
-        if self.is_leaf(state) or depth == 0:
-            return self.evaluate(state)
-        if maximizing_player:
-            best_value = -INF
-            for new_board in self.get_childs(state):
-                best_value = max(best_value, self.minimax(new_board, depth - 1, False))
-            return best_value
-        else:
-            best_value = INF
-            for new_board in self.get_childs(state):
-                best_value = min(best_value, self.minimax(new_board, depth - 1, True))
-            return best_value
 
     def neg_alpha_beta(self, state: State, depth: int, alpha, beta, color: int):
         if self.is_leaf(state) or depth == 0:
@@ -100,6 +87,7 @@ class MiniMax(Strategy):
         return value
 
     def get_childs(self, state):
+        from board import Board
         board: Board = state["board"]
         current_player: AI = state["current_player"]
         enemy_player = state["enemy_player"]
@@ -111,7 +99,7 @@ class MiniMax(Strategy):
 
         for _, moves in cases_who_can_play:
             for move in moves:
-                new_board = copy.deepcopy(board)
+                new_board = Board(GRID_SIZE, board.__str__())
                 current_player.play_move(new_board, move)
                 result.append([{
                     "board": new_board,

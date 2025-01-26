@@ -68,12 +68,15 @@ class PlayableCase(Case):
     def can_land(self) -> bool:
         return self._can_land
 
-    def try_promotion(self) -> None:
+    def try_promotion(self) -> bool:
         from piece import Queen
         if self._y == 0 and self._piece.get_team() is Team.WHITE:
             self._piece = Queen(self._piece.get_team())
+            return True
         elif self._y == GRID_SIZE - 1 and self._piece.get_team() is Team.BLACK:
             self._piece = Queen(self._piece.get_team())
+            return True
+        return False
 
     def draw(self, surface: pg.Surface, size: int, offset: int = 0) -> None:
         super().draw(surface, size, offset)
